@@ -1,0 +1,6 @@
+1. Q: Could you assume a maximum length for a macro name?
+   A: Yes 31 characters.
+   R: https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=3210119&p=7599738#p7599738
+2. Q: How many strings could there be in a .string statment?
+   A: Only one.
+   R: Page 27.

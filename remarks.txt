@@ -1,0 +1,2 @@
+1. All of the structer and names start with an upper case and every new word isn't seperated by a space. Example: MacroTable.
+2. All of the variable names start with lowwer case and every new word is seperated by a '_'. Example: macro_table.
