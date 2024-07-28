@@ -1,8 +1,8 @@
 #include "first_pass.h"
 #include "tables.h"
-#include "parser_utilities.c"
-#include "data_utilities.c"
-#include "instruction_utilities.c"
+#include "parser_utilities.h"
+#include "data_utilities.h"
+#include "instruction_utilities.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

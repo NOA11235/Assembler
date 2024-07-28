@@ -1,6 +1,7 @@
-#include "first_pass.h"
+#include "data_utilities.h"
+#include "both_pass_common.h"
 #include "tables.h"
-#include "parser_utilities.c"
+#include "parser_utilities.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 

@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../SPL/Assembler"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stdlib.h": "c",
+			"first_pass.h": "c",
+			"stdio.h": "c",
+			"tables.h": "c",
+			"parser_utilities.h": "c"
+		}
+	}
+}

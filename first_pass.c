@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "first_pass.h"
-#include "first_pass_utilities.c"
-#include "parser_utilities.c"
+#include "first_pass_utilities.h"
+#include "parser_utilities.h"
 
 FILE *first_pass(FILE *file, char *file_name)
 {
