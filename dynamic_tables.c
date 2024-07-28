@@ -1,53 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#define ALLOC_SIZE 50
-#define MAX_LINE_LENGTH 80
-#define MAX_LABEL_LENGTH 31
-#define BITS_IN_WORD 15
-
-/*LabelEntry structer for the LabelTable, implemented as a linked-list*/
-typedef struct LabelEntry
-{
-    char name[MAX_LABEL_LENGTH];
-    int address[BITS_IN_WORD];
-    int is_data : 1; /*one bit flag*/
-    struct LabelEntry *next;
-} LabelEntry;
-
-typedef struct 
-{
-    int size;
-    LabelEntry *head;
-} LabelTable;
-
-/*MacroEntry structer for the MacroTable, implemented as a linked-list */
-typedef struct MacroEntry
-{
-    char name[MAX_LABEL_LENGTH];
-    char content[MAX_LINE_LENGTH];
-    struct MacroEntry *next;
-} MacroEntry;
-
-typedef struct 
-{
-    int size;
-    MacroEntry *head;
-} MacroTable;
-
-typedef struct LabelOperand
-{
-    char name[MAX_LABEL_LENGTH];
-    int poisition_in_instr_array;
-    struct LabelOperand *next;
-} LabelOperand;
-
-typedef struct 
-{
-    int size;
-    LabelOperand *head;
-} LabelOperandList; 
-
-
+#include "common.h"
+#include "dynamic_tables.h"
+ 
 /**
  * @brief This method creats an entry in the label table and inserts it at the head of the list.
  * 

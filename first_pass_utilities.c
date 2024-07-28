@@ -1,4 +1,5 @@
-#include "first_pass.h"
+#include "first_pass_utilities.h"
+#include "both_pass_common.h"
 #include "tables.h"
 #include "parser_utilities.h"
 #include "data_utilities.h"

@@ -1,0 +1,4 @@
+#define ALLOC_SIZE 50
+#define MAX_LINE_LENGTH 80
+#define MAX_LABEL_LENGTH 31
+#define BITS_IN_WORD 15
