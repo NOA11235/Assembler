@@ -1,4 +1,7 @@
 /*this file includes different tables used for the assembler*/
+#ifndef TABLES_H
+#define TABLES_H
+
 #include "dynamic_tables.h"
 #define MAX_OP_NAME_LEN 5
 #define MAX_DATA_NAME_LEN 8
@@ -48,3 +51,4 @@ struct data_table
             {3, ".extern"}
        };
 
+#endif

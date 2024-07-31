@@ -1,5 +1,6 @@
 #include "parser_utilities.h"
-#include "first_pass_common.h"
+#include "both_pass_common.h"
+#include <stdio.h>
 
 char *comma_parser(char *token, int *comma_flag)
 {

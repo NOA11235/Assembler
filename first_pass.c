@@ -2,6 +2,7 @@
 #include "first_pass.h"
 #include "first_pass_utilities.h"
 #include "parser_utilities.h"
+#include "both_pass_common.h"
 
 FILE *first_pass(FILE *file, char *file_name)
 {

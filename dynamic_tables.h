@@ -35,7 +35,8 @@ typedef struct
 typedef struct LabelOperand
 {
     char name[MAX_LABEL_LENGTH];
-    int poisition_in_instr_array;
+    int position_in_instruction_array;
+    int position_in_file;
     struct LabelOperand *next;
 } LabelOperand;
 
@@ -50,6 +51,6 @@ void create_label_entry(LabelTable *, char *, int);
 void add_address_to_head(LabelTable *, int);
 void create_macro_entry(MacroTable *, char *);
 void add_content_to_head(MacroTable *, char *);
-void add_label_operand(LabelOperandList *, char *, int);
+void add_label_operand(LabelOperandList *, char *, int, int);
 
 #endif

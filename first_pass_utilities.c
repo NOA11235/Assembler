@@ -74,7 +74,7 @@ char *process_label(char line[], int counter)
     }
 
     create_label_entry(&symbol_table, label, is_data_label);
-    add_address_to_head(&label_table, counter);
+    add_address_to_head(&symbol_table, counter);
     return line + strlen(label);
 }
 
@@ -185,7 +185,7 @@ void process_instruction(char line[])
                 error_flag = 1;
                 continue;
             }
-            add_label_operand(&label_operand_list, token, IC + (++word_count));
+            add_label_operand(&label_operand_list, token, IC + (++word_count), file_info.line_count);
         }
         else
         {

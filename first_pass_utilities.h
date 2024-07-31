@@ -10,5 +10,4 @@ int is_comment(char *);
 int is_data(char *); 
 int is_instruction(char *);
 
-
 #endif 

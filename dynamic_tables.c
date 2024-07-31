@@ -82,7 +82,7 @@ void add_content_to_head(MacroTable *t, char *str)
     strcat(t->head->content, str);
 }
 
-void add_label_operand(LabelOperandList *list, char *name, int position)
+void add_label_operand(LabelOperandList *list, char *name, int position_in_instruction_array, int position_in_file)
 {
     LabelOperand *new_entry = (LabelOperand *)malloc(sizeof(LabelOperand));
     if (new_entry == NULL) 
@@ -91,7 +91,8 @@ void add_label_operand(LabelOperandList *list, char *name, int position)
         exit(EXIT_FAILURE);
     }
     strcpy(new_entry->name, name);
-    new_entry->poisition_in_instr_array = position;
+    new_entry->position_in_instruction_array = position_in_instruction_array;
+    new_entry->position_in_file = position_in_file;
     list->size++;
     if(list->size == 1)
     {

@@ -1,5 +1,5 @@
 #include "instruction_utilities.h"
-#include "first_pass_common.h"
+#include "both_pass_common.h"
 #include "tables.h"
 #include <ctype.h>
 
