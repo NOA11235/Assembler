@@ -1,11 +1,40 @@
-#include "first_pass_utilities.h"
-#include "definitions.h"
-#include "parser_utilities.h"
-#include "data_utilities.h"
-#include "instruction_utilities.h"
+#include "first_pass_utils.h"
+#include "defs.h"
+#include "parser_utils.h"
+#include "data_utils.h"
+#include "instruction_utils.h"
+#include "first_pass_table_utils.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
+
+/*constant tables for the functions in this file*/
+const OperationTable operation_table[] = {
+    {0, "mov", 2, {1, 1, 1, 1}, {0, 1, 1, 1}},
+    {1, "cmp", 2, {1, 1, 1, 1}, {1, 1, 1, 1}},
+    {2, "add", 2, {1, 1, 1, 1}, {0, 1, 1, 1}},
+    {3, "sub", 2, {1, 1, 1, 1}, {0, 1, 1, 1}},
+    {4, "lea", 2, {0, 1, 0, 0}, {0, 1, 1, 1}},
+    {5, "clr", 1, {0, 1, 1, 1}, {0}},
+    {6, "not", 1, {0, 1, 1, 1}, {0}},
+    {7, "inc", 1, {0, 1, 1, 1}, {0}},
+    {8, "dec", 1, {0, 1, 1, 1}, {0}},
+    {9, "jmp", 1, {0, 1, 1, 0}, {0}},
+    {10, "bne", 1, {0, 1, 1, 0}, {0}},
+    {11, "red", 1, {0, 1, 1, 1}, {0}},
+    {12, "prn", 1, {1, 1, 1, 1}, {0}},
+    {13, "jsr", 1, {0, 1, 1, 0}, {0}},
+    {14, "rts", 0, {0}, {0}},
+    {15, "stop", 0, {0}, {0}}
+};
+
+const DataTable data_table[] = {
+    {0, ".data"},
+    {1, ".string"},
+    {2, ".entry"},
+    {3, ".extern"}
+};
 
 int is_empty(char line[])
 {
@@ -55,9 +84,9 @@ int is_instruction(char line[])
     return 0;
 }
 
-void process_label(char **line, FileInfo *file_info, Tables *tables, int counter)
+void process_label(char *line[], FileInfo *file_info, Tables *tables, int counter)
 {
-    char label[MAX_LABEL_LENGTH], *data_name;
+    char label[MAX_LABEL_LENGTH], data_name[MAX_DATA_NAME_LENGTH];
     int is_data_label = 0;
     sscanf(*line, "%s", label);
     label[strlen(label)-1] = '\0'; /*remove ':'*/
@@ -78,8 +107,13 @@ void process_label(char **line, FileInfo *file_info, Tables *tables, int counter
 
 void process_data(char *line, FileInfo *file_info, Tables *tables, MachineCodeImage *machine_code_image)
 {
-    char data_name[MAX_DATA_NAME_LEN];
+    char data_name[MAX_DATA_NAME_LENGTH];
     sscanf(line, "%s", data_name);
+    /*move the line pointer to the beginning of the data*/
+    while(*line == ' ' || *line == '\t')
+    {
+        line++;
+    }
     line = line + strlen(data_name);
     if(strcmp(data_name, data_table[0].name) == 0)
     {
@@ -104,26 +138,33 @@ void process_data(char *line, FileInfo *file_info, Tables *tables, MachineCodeIm
     }
 }
 
-void process_instruction(char line[], FileInfo *file_info, Tables *tables, MachineCodeImage *machine_code_image)
+void process_instruction(char *line, FileInfo *file_info, Tables *tables, MachineCodeImage *machine_code_image)
 {
     char *token;
-    char *op_name;
     int i, op_code;
     int source_register_flag = 0; /*keeps track if the source operand addressing method is 2 or 3*/
     int word_count = 0; /*keeps track of the number of information words in the instruction_array*/
     int comma_flag = 0; /*flag for indecating the comma is expected in the beginning of next data*/
-    int *operand_address_method;
+    const int *operand_address_method; /*a pointer to a constant integer*/
 
     token = strtok(line, " \t");/*this token consists of the operation name*/
 
     /*getting the operation code*/
     for(op_code = 0; op_code < NUM_OF_OP; op_code++)
     {
-        if(strcmp(token, operation_table[op_code].name) != NULL)
+        if(strcmp(token, operation_table[op_code].name) == 0)
         {
             machine_code_image->instruction_array[machine_code_image->IC] = operation_table[op_code].code << 11;
             break;
         }
+    }
+
+    /*checking if operation name is invalid*/
+    if(op_code == NUM_OF_OP)
+    {
+        printf(ERROR_MESSAGE, "invalid operation name");
+        file_info->error_status = 1;
+        return;
     }
 
     /*processing the command*/
@@ -133,13 +174,13 @@ void process_instruction(char line[], FileInfo *file_info, Tables *tables, Machi
         token = comma_parser(token, &comma_flag, file_info);
     
         /*getting the addressing method*/
-        operand_address_method = (i == 0)? operation_table[op_code].source_address_method : operation_table[op_code].target_address_method;
+        operand_address_method = (i == 0)? operation_table[op_code].first_operand_address_method : operation_table[op_code].second_operand_method;
 
         if(token[0] == '#')
         {
             if(!operand_address_method[0])
             {
-                printf(ERROR_MESSAGE, "direct addressing method is not allowed");
+                printf(ERROR_MESSAGE, "immediate addressing method is not allowed");
                 file_info->error_status = 1;
                 continue;
             }
@@ -175,7 +216,7 @@ void process_instruction(char line[], FileInfo *file_info, Tables *tables, Machi
             }
             process_register(token, i+1, word_count, 1, file_info, machine_code_image);
         }
-        else if(is_label(token))
+        else
         {
             if(!operand_address_method[1])
             {
@@ -184,11 +225,6 @@ void process_instruction(char line[], FileInfo *file_info, Tables *tables, Machi
                 continue;
             }
             add_operand_to_table(tables, token, machine_code_image->IC + (++word_count), file_info->line_count);
-        }
-        else
-        {
-            printf(ERROR_MESSAGE, "there is no such addressing method");
-            file_info->error_status = 1;
         }
     }
     machine_code_image->IC += word_count+1;

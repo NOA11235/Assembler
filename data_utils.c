@@ -1,10 +1,12 @@
-#include "data_utilities.h"
-#include "definitions.h"
-#include "parser_utilities.h"
+#include "data_utils.h"
+#include "defs.h"
+#include "first_pass_table_utils.h"
+#include "parser_utils.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 
 #include <math.h>
+#include <ctype.h>
 
 void process_data_data(char *line, FileInfo *file_info, MachineCodeImage *machine_code_image)
 {
@@ -57,7 +59,7 @@ void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *mach
         machine_code_image->DC++;
     }
     /*checking for extraneous text after the end of command*/
-    while(token = strtok(NULL, " \t"))
+    while((token = strtok(NULL, " \t")))
     {
         for(i = 0; i < strlen(token); i++)
         {
@@ -73,14 +75,12 @@ void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *mach
 
 void process_entry_data(char *line, Tables *tables)
 {
-    char *label = strtok(line, " \t"); /*this token consists of white spaces*/
-    label = strtok(NULL, " \t"); /*this token consists of the label*/
+    char *label = strtok(line, " \t"); /*this token consists of label name*/
     add_entry_to_table(tables, label);
 }
 
 void process_extern_data(char *line, Tables *tables)
 {
-    char *label = strtok(line, " \t"); /*this token consists of white spaces*/
-    label = strtok(NULL, " \t"); /*this token consists of the label*/
+    char *label = strtok(line, " \t"); /*this token consists of label name*/
     add_extern_to_table(tables, label);
 }

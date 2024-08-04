@@ -1,12 +1,13 @@
-#include "instruction_utilities.h"
-#include "common.h"
-#include "tables.h"
+#include "instruction_utils.h"
+#include "defs.h"
+#include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 
 void process_immediate(char *token, int operand_num, int word_count, FileInfo *file_info, MachineCodeImage *machine_code_image)
 {
     int i, num;
-    token = token + 1;
+    token = (token[1] == '+' || token[1] == '-')? token + 2: token + 1; /*getting rid of '#' and a positive or negitive sign*/
     for(i = 0; i < strlen(token); i++)
     {
         if(!isdigit(token[i]))
@@ -29,7 +30,7 @@ void process_register(char *token, int operand_num, int word_count, int is_direc
     int num;
     token = (is_direct)? token + 1: token + 2;
 
-    if(token[0] < '0' && token[0] > 'NUM_OF_REGISTERS - 1')
+    if(token[0] < '0' && token[0] > '7')
     {
         printf(ERROR_MESSAGE, "invalid register");
         file_info->error_status = 1;

@@ -1,7 +1,5 @@
-#ifndef FIRST_PASS_DYNAMIC_TABLE_UTILITIES_H
-#define FIRST_PASS_DYNAMIC_TABLE_UTILITIES_H
-
-#include "definitions.h"
+#include "defs.h"
+#include <string.h>
 #include <stdlib.h>
 
 /*for the first pass*/
@@ -15,7 +13,7 @@ void add_label_to_table(Tables *tables, char *name, int address, int is_data)
     }
     strcpy(new_node->name, name);
     new_node->address = address;
-    new_node->is_data = 0;
+    new_node->is_data = is_data;
     new_node->next = tables->label_table_head;
     tables->label_table_head = new_node;
 }
@@ -60,5 +58,3 @@ void add_operand_to_table(Tables *tables, char *name, int position_in_instructio
     new_node->next = tables->operand_label_table_head;
     tables->operand_label_table_head = new_node;
 }
-
-#endif

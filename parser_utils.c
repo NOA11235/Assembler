@@ -1,11 +1,12 @@
-#include "parser_utilities.h"
-#include "common.h"
+#include "parser_utils.h"
+#include "defs.h"
 #include <stdio.h>
+#include <string.h>
 
 char *comma_parser(char *token, int *comma_flag, FileInfo *file_info)
 {
     /*if there wasn't a comma at the end of last operand then we'll check for it now*/
-    if(comma_flag)
+    if(*comma_flag)
     {
         if(strcmp(token, ",") == 0)
         {
@@ -17,17 +18,17 @@ char *comma_parser(char *token, int *comma_flag, FileInfo *file_info)
             file_info->error_status = 1;
             token++;
         }
-        comma_flag = 0;
+        *comma_flag = 0;
     }
 
     /*getting rid of the comma at the end*/
-    if(token[strlen(token-1)] == ',')
+    if(token[strlen(token)-1] == ',')
     {
-        token[strlen(token-1)] = '\0';
+        token[strlen(token)-1] = '\0';
     }
     else
     {
-        comma_flag = 1;
+        *comma_flag = 1;
     }
     return token;
 }
@@ -39,6 +40,8 @@ int read_line(char *line, FileInfo *file_info)
     {
         return 0;
     }
+    /*updating the line count*/
+    file_info->line_count++;
     /*checking if the line is too long (more than 80 characters)*/
     if(line[strlen(line)-1] != '\n')
     {

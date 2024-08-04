@@ -1,8 +1,8 @@
-#ifndef SECOND_PASS_DYNAMIC_TABLE_UTILITIES_H
-#define SECOND_PASS_DYNAMIC_TABLE_UTILITIES_H
-
-#include "defenitions.h"
+#include "second_pass_table_utils.h"
+#include "defs.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 /*for the second pass*/
 void add_values_to_label_table(Tables *tables, int data_offset)
@@ -13,20 +13,6 @@ void add_values_to_label_table(Tables *tables, int data_offset)
         current->address += (current->is_data)? FIRST_ADDRESS + data_offset : FIRST_ADDRESS;
         current = current->next;
     }
-}
-
-int get_address(Tables *tables, char *name)
-{
-    LabelTableNode *current = tables->label_table_head;
-    while (current != NULL)
-    {
-        if (strcmp(current->name, name) == 0)
-        {
-            return current->address;
-        }
-        current = current->next;
-    }
-    return -1;
 }
 
 void process_label_operands(FileInfo *file_info, Tables *tables, MachineCodeImage *machine_code_image)
@@ -64,13 +50,13 @@ void process_label_operands(FileInfo *file_info, Tables *tables, MachineCodeImag
         /*if label is not defined*/
         if (address == -1)
         {
-            printf(ERROR_MESSAGE, "undefined label");
+            printf("%s:%d: %s\n", file_info->file_name, tables->operand_label_table_head->position_in_file , "undefined label");
             file_info->error_status = 1;
         }
         /*if label was defined, the E=1 if the label is external and otherwise R=1*/
         else
         {
-            machine_code_image->instruction_array[current_operand->position_in_instruction_array] = (address == 0)? (address << 3) || 1  : (address << 3) || (1 << 2); ;
+            machine_code_image->instruction_array[current_operand->position_in_instruction_array] = (address == 0)? (address << 3) | 1  : (address << 3) | (1 << 2);
         }
         current_operand = current_operand->next;
     }
@@ -82,9 +68,15 @@ void print_entry_labels(FileInfo *file_info, Tables *tables)
 {
     EntryTableNode *current_entry = tables->entry_table_head;    
     LabelTableNode *current_label;
-
-    char *filename = strcat(file_info->file_name, ".ent");
     FILE *ent_file = NULL;
+
+    char *filename = malloc(strlen(file_info->file_name) + 5); /*+5 for ".ent" and '\0'*/
+    if(filename == NULL)
+    {
+        printf("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    sprintf(filename, "%s.ent", file_info->file_name);
 
     while(current_entry != NULL)
     {
@@ -116,15 +108,22 @@ void print_entry_labels(FileInfo *file_info, Tables *tables)
     {
         fclose(ent_file);
     }
+    free(filename);
 }
 
 void print_extern_labels(FileInfo *file_info, Tables *tables)
 {
     ExternTableNode *current_extern = tables->extern_table_head;
     LabelTableNode *current_label;
-
-    char *filename = strcat(file_info->file_name, ".ext");
     FILE *ext_file = NULL;
+
+    char *filename = malloc(strlen(file_info->file_name) + 5); /*+5 for ".ext" and '\0'*/
+    if(filename == NULL)
+    {
+        printf("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    sprintf(filename, "%s.ext", file_info->file_name);
 
     while(current_extern != NULL)
     {
@@ -156,6 +155,5 @@ void print_extern_labels(FileInfo *file_info, Tables *tables)
     {
         fclose(ext_file);
     }
+    free(filename);
 }
-
-#endif
