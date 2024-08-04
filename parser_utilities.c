@@ -1,8 +1,8 @@
 #include "parser_utilities.h"
-#include "both_pass_common.h"
+#include "common.h"
 #include <stdio.h>
 
-char *comma_parser(char *token, int *comma_flag)
+char *comma_parser(char *token, int *comma_flag, FileInfo *file_info)
 {
     /*if there wasn't a comma at the end of last operand then we'll check for it now*/
     if(comma_flag)
@@ -14,7 +14,7 @@ char *comma_parser(char *token, int *comma_flag)
         else if(token[0] != ',')
         {
             printf(ERROR_MESSAGE, "missing comma");
-            error_flag = 1;
+            file_info->error_status = 1;
             token++;
         }
         comma_flag = 0;
@@ -32,20 +32,21 @@ char *comma_parser(char *token, int *comma_flag)
     return token;
 }
 
-char *read_line(FILE *file)
+int read_line(char *line, FileInfo *file_info)
 {
-    static char line[MAX_LINE_LENGTH+2]; /*+2 for '\n' and '\0'*/
-    if(fgets(line, MAX_LINE_LENGTH+1, file) == NULL)
+    /*reading the next line from file*/
+    if(!fgets(line, MAX_LINE_LENGTH+2, file_info->file))
     {
-        return NULL;
+        return 0;
     }
+    /*checking if the line is too long (more than 80 characters)*/
     if(line[strlen(line)-1] != '\n')
     {
         printf(ERROR_MESSAGE, "error: line is too long");
-        error_flag = 1;
+        file_info->error_status = 1;
     }
-    line[strlen(line)-1] = '\0';
-    return line;
+    line[strlen(line)-1] = '\0'; /*getting rid of '\n'*/
+    return 1;
 }
 
 int is_label(char line[])

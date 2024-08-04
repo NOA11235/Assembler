@@ -1,12 +1,12 @@
 #include "data_utilities.h"
-#include "both_pass_common.h"
-#include "tables.h"
+#include "definitions.h"
 #include "parser_utilities.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 
+#include <math.h>
 
-void process_data_data(char *line)
+void process_data_data(char *line, FileInfo *file_info, MachineCodeImage *machine_code_image)
 {
     char *token = strtok(line, " \t");
     int comma_flag = 0; /*flag for indecating the comma is expected in the beginning of next data*/
@@ -14,7 +14,7 @@ void process_data_data(char *line)
     int i, num;
     do
     {
-        token = comma_parser(token, &comma_flag);
+        token = comma_parser(token, &comma_flag, file_info);
         /*checking for sign in the beginning*/
         if(token[0] == '+' || token[0] == '-')
         {
@@ -30,7 +30,7 @@ void process_data_data(char *line)
             if(isdigit(token[i]))
             {
                 printf(ERROR_MESSAGE, "invalid data");
-                error_flag = 1;
+                file_info->error_status = 1;
             }
         }
         /*converting the data to integer and adding it to the memory picture*/
@@ -38,14 +38,14 @@ void process_data_data(char *line)
         /*calculating the number if the data is negitive so it would be represented in the 2's complement method*/
         if(minus_flag)
         {
-            num = 2^BITS_IN_WORD - num;
+            num = pow(2, BITS_IN_WORD) - num;
         }
-        data_array[DC] = num;
-        DC++;
+        machine_code_image->data_array[machine_code_image->DC] = num;
+        machine_code_image->DC++;
     } while((token = strtok(NULL, " \t")) != NULL);
 }
 
-void process_string_data(char *line)
+void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *machine_code_image)
 {
     char *token;
     int i;
@@ -53,8 +53,8 @@ void process_string_data(char *line)
     token = strtok(NULL, "\""); /*this token consists of the string*/
     for(i = 0; i < strlen(token); i++)
     {
-        data_array[DC] = token[i];
-        DC++;
+        machine_code_image->data_array[machine_code_image->DC] = token[i];
+        machine_code_image->DC++;
     }
     /*checking for extraneous text after the end of command*/
     while(token = strtok(NULL, " \t"))
@@ -64,23 +64,23 @@ void process_string_data(char *line)
             if(token[i] != '\t' && token[i] != ' ')
             {
                 printf(ERROR_MESSAGE, "extraneous text after the end of word");
-                error_flag = 1;    
+                file_info->error_status = 1;    
                 break;
             }
         }
     }
 }
 
-void process_entry_data(char *line)
+void process_entry_data(char *line, Tables *tables)
 {
     char *label = strtok(line, " \t"); /*this token consists of white spaces*/
     label = strtok(NULL, " \t"); /*this token consists of the label*/
-    create_label_entry(&entry_table, label, 0);
+    add_entry_to_table(tables, label);
 }
 
-void process_extern_data(char *line)
+void process_extern_data(char *line, Tables *tables)
 {
     char *label = strtok(line, " \t"); /*this token consists of white spaces*/
     label = strtok(NULL, " \t"); /*this token consists of the label*/
-    create_label_entry(&extern_table, label, 0);
+    add_extern_to_table(tables, label);
 }

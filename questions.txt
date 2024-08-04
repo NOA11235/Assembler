@@ -4,3 +4,4 @@
 2. Q: How many strings could there be in a .string statment?
    A: Only one.
    R: Page 27.
+3. Q: Do I need to check that a label defined as .entry is defined later on in the file?

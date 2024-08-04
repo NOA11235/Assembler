@@ -1,6 +1,5 @@
 #include "first_pass_utilities.h"
-#include "both_pass_common.h"
-#include "tables.h"
+#include "definitions.h"
 #include "parser_utilities.h"
 #include "data_utilities.h"
 #include "instruction_utilities.h"
@@ -35,7 +34,7 @@ int is_data(char line[])
     int i;
     for(i = 0; i < NUM_OF_DATA; i++)
     {
-        if(strstr(line, data[i].name) != NULL)
+        if(strstr(line, data_table[i].name) != NULL)
         {
             return 1;
         }
@@ -48,7 +47,7 @@ int is_instruction(char line[])
     int i;
     for(i = 0; i < NUM_OF_OP; i++)
     {
-        if(strstr(line, op[i].name) != NULL)
+        if(strstr(line, operation_table[i].name) != NULL)
         {
             return 1;
         }
@@ -56,57 +55,56 @@ int is_instruction(char line[])
     return 0;
 }
 
-char *process_label(char line[], int counter)
+void process_label(char **line, FileInfo *file_info, Tables *tables, int counter)
 {
     char label[MAX_LABEL_LENGTH], *data_name;
     int is_data_label = 0;
-    sscanf(line, "%s", label);
+    sscanf(*line, "%s", label);
     label[strlen(label)-1] = '\0'; /*remove ':'*/
-    sscanf(line, "%s", data_name);
-    if(strcmp(data_name, data[2].name) == 0 || strcmp(data_name, data[3].name) == 0)
+    sscanf(*line, "%s", data_name);
+    if(strcmp(data_name, data_table[2].name) == 0 || strcmp(data_name, data_table[3].name) == 0)
     {
         printf(ERROR_MESSAGE, "warning: label cannot be an entry or extern");
-        error_flag = 1;
+        file_info->error_status = 1;
     }
-    if(strcmp(data_name, data[0].name) == 0 || strcmp(data_name, data[1].name) == 0)
+    if(strcmp(data_name, data_table[0].name) == 0 || strcmp(data_name, data_table[1].name) == 0)
     {
         is_data_label = 1;
     }
 
-    create_label_entry(&symbol_table, label, is_data_label);
-    add_address_to_head(&symbol_table, counter);
-    return line + strlen(label);
+    add_label_to_table(tables, label, counter, is_data_label);
+    *line = *line + strlen(label) + 1; /*+1 for ':'*/
 }
 
-void process_data(char line[])
+void process_data(char *line, FileInfo *file_info, Tables *tables, MachineCodeImage *machine_code_image)
 {
     char data_name[MAX_DATA_NAME_LEN];
     sscanf(line, "%s", data_name);
     line = line + strlen(data_name);
-    if(strcmp(data_name, data[0].name) == 0)
+    if(strcmp(data_name, data_table[0].name) == 0)
     {
-        process_data_data(line);
+        process_data_data(line, file_info, machine_code_image);
     }
-    else if(strcmp(data_name, data[1].name) == 0)
+    else if(strcmp(data_name, data_table[1].name) == 0)
     {
-        process_string_data(line);
+        process_string_data(line, file_info, machine_code_image);
     }
-    else if(strcmp(data_name, data[2].name) == 0)
+    else if(strcmp(data_name, data_table[2].name) == 0)
     {
-        process_entry_data(line);
+        process_entry_data(line, tables);
     }
-    else if(strcmp(data_name, data[3].name) == 0)
+    else if(strcmp(data_name, data_table[3].name) == 0)
     {
-        process_extern_data(line);
+        process_extern_data(line, tables);
     }
     else
     {
         printf(ERROR_MESSAGE, "invalid data name");
-        error_flag = 1;
+        file_info->error_status = 1;
     }
 }
 
-void process_instruction(char line[])
+void process_instruction(char line[], FileInfo *file_info, Tables *tables, MachineCodeImage *machine_code_image)
 {
     char *token;
     char *op_name;
@@ -121,38 +119,38 @@ void process_instruction(char line[])
     /*getting the operation code*/
     for(op_code = 0; op_code < NUM_OF_OP; op_code++)
     {
-        if(strcmp(token, op[op_code].name) != NULL)
+        if(strcmp(token, operation_table[op_code].name) != NULL)
         {
-            instruction_array[IC] = op[op_code].code << 11;
+            machine_code_image->instruction_array[machine_code_image->IC] = operation_table[op_code].code << 11;
             break;
         }
     }
 
     /*processing the command*/
-    for(i = 0; i < op[op_code].num_of_operands; i++)
+    for(i = 0; i < operation_table[op_code].num_of_operands; i++)
     {
         token = strtok(NULL, " \t"); /*this token consists of the operand*/
-        token = comma_parser(token, &comma_flag);
+        token = comma_parser(token, &comma_flag, file_info);
     
         /*getting the addressing method*/
-        operand_address_method = (i == 0)? op[op_code].source_address_method : op[op_code].target_address_method;
+        operand_address_method = (i == 0)? operation_table[op_code].source_address_method : operation_table[op_code].target_address_method;
 
         if(token[0] == '#')
         {
             if(!operand_address_method[0])
             {
                 printf(ERROR_MESSAGE, "direct addressing method is not allowed");
-                error_flag = 1;
+                file_info->error_status = 1;
                 continue;
             }
-            process_immediate(token, i+1, ++word_count);
+            process_immediate(token, i+1, ++word_count, file_info, machine_code_image);
         }
         else if(token[0] == '*' && token[1] == 'r' && isdigit(token[2]))
         {
             if(!operand_address_method[2])
             {
                 printf(ERROR_MESSAGE, "indirect register addressing method is not allowed");
-                error_flag = 1;
+                file_info->error_status = 1;
                 continue;
             }
             source_register_flag = (i == 0)? 1 : 0;
@@ -160,14 +158,14 @@ void process_instruction(char line[])
             {
                 ++word_count;
             }
-            process_register(token, i+1, word_count, 0);
+            process_register(token, i+1, word_count, 0, file_info, machine_code_image);
         }
         else if(token[0] == 'r' && isdigit(token[1]))
         {
             if(!operand_address_method[3])
             {
                 printf(ERROR_MESSAGE, "direct register addressing method is not allowed");
-                error_flag = 1;
+                file_info->error_status = 1;
                 continue;
             }
             source_register_flag = (i == 0)? 1 : 0;
@@ -175,23 +173,23 @@ void process_instruction(char line[])
             {
                 ++word_count;
             }
-            process_register(token, i+1, word_count, 1);
+            process_register(token, i+1, word_count, 1, file_info, machine_code_image);
         }
         else if(is_label(token))
         {
             if(!operand_address_method[1])
             {
                 printf(ERROR_MESSAGE, "direct addressing method is not allowed");
-                error_flag = 1;
+                file_info->error_status = 1;
                 continue;
             }
-            add_label_operand(&label_operand_list, token, IC + (++word_count), file_info.line_count);
+            add_operand_to_table(tables, token, machine_code_image->IC + (++word_count), file_info->line_count);
         }
         else
         {
             printf(ERROR_MESSAGE, "there is no such addressing method");
-            error_flag = 1;
+            file_info->error_status = 1;
         }
     }
-    IC += word_count+1;
+    machine_code_image->IC += word_count+1;
 }

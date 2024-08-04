@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "common.h": "c",
+        "tables.h": "c",
+        "dynamic_tables.h": "c",
+        "second_pass.h": "c"
+    }
+}

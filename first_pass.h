@@ -2,6 +2,7 @@
 #define FIRST_PASS_H
 #include <stdio.h>
 
-FILE *first_pass(FILE *, char *);
+/*Function prototypes*/
+FILE *first_pass(MachineCodeImage *, Tables *, FileInfo *);
 
 #endif
