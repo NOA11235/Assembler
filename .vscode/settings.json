@@ -5,6 +5,9 @@
         "dynamic_tables.h": "c",
         "second_pass.h": "c",
         "stdio.h": "c",
-        "first_pass_utilities.h": "c"
+        "first_pass_utilities.h": "c",
+        "math.h": "c",
+        "string.h": "c",
+        "defs.h": "c"
     }
 }

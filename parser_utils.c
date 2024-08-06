@@ -33,6 +33,15 @@ char *comma_parser(char *token, int *comma_flag, FileInfo *file_info)
     return token;
 }
 
+char *walkthrough_white_spaces(char *line)
+{
+    while(*line == ' ' || *line == '\t')
+    {
+        line++;
+    }
+    return line;
+}
+
 int read_line(char *line, FileInfo *file_info)
 {
     /*reading the next line from file*/
@@ -43,7 +52,7 @@ int read_line(char *line, FileInfo *file_info)
     /*updating the line count*/
     file_info->line_count++;
     /*checking if the line is too long (more than 80 characters)*/
-    if(line[strlen(line)-1] != '\n')
+    if(line[strlen(line)-1] != '\n' && !feof(file_info->file))
     {
         printf(ERROR_MESSAGE, "error: line is too long");
         file_info->error_status = 1;

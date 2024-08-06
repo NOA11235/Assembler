@@ -17,6 +17,14 @@
 char *comma_parser(char *token, int *comma_flag, FileInfo *file_info);
 
 /**
+ * @brief This function walks through white spaces in a line.
+ * 
+ * @param line The line to walk through.
+ * @return A pointer to the first non-white-space character in the line.
+ */
+char *walkthrough_white_spaces(char *line);
+
+/**
  * @brief This function reads the next line from the file and updates the FileInfo struct accordingly.
  * 
  * @param line A pointer to the  buffer-line to read into.

@@ -35,29 +35,25 @@ void process_label_operands(FileInfo *file_info, Tables *tables, MachineCodeImag
             }
             current_label = current_label->next;
         }
-        if(address != -1)
-        {
-            while (current_extern != NULL)
-            {
-                if (strcmp(current_operand->name, current_extern->name) == 0)
-                {
-                    address = 0;
-                    break;
-                }
-                current_extern = current_extern->next;
-            }
-        }
         /*if label is not defined*/
         if (address == -1)
         {
             printf("%s:%d: %s\n", file_info->file_name, tables->operand_label_table_head->position_in_file , "undefined label");
             file_info->error_status = 1;
+            continue;;
         }
-        /*if label was defined, the E=1 if the label is external and otherwise R=1*/
-        else
+        /*check if label is external*/
+        while (current_extern != NULL)
         {
-            machine_code_image->instruction_array[current_operand->position_in_instruction_array] = (address == 0)? (address << 3) | 1  : (address << 3) | (1 << 2);
+            if (strcmp(current_operand->name, current_extern->name) == 0)
+            {
+                address = 0;
+                break;
+            }
+            current_extern = current_extern->next;
         }
+        /*update the instruction array*/
+        machine_code_image->instruction_array[current_operand->position_in_instruction_array] = (address == 0)? (address << 3) | 1  : (address << 3) | (1 << 2);
         current_operand = current_operand->next;
     }
 

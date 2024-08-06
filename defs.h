@@ -16,7 +16,7 @@
 #define BITS_IN_WORD 15
 #define MAX_PROGRAM_LENGTH 1000
 #define FIRST_ADDRESS 100
-#define ERROR_MESSAGE "%s:%d: %s\n", file_info->file_name, file_info->line_count
+#define ERROR_MESSAGE "%s.as:%d: %s\n", file_info->file_name, file_info->line_count
 
 /*Dynamic Tables*/
 
@@ -84,16 +84,15 @@ typedef struct OperandTableNode
  * @param code The operation code.
  * @param name The name of the operation.
  * @param num_of_operands The number of operands the operation is allowed to take.
- * @param source_address_method An array containing the source addressing methods.
- * @param target_address_method An array containing the target addressing methods.
+ * @param addressing_method An array containing the addressing method of the first operand in 
+ *                          addressing_method[0] and of the second operand in addressing_method[1].
  */
 typedef struct
 {
     int code;
     char name[MAX_OP_NAME_LENGTH];
     int num_of_operands;
-    int first_operand_address_method[NUM_OF_ADDRESSING_METHODS];
-    int second_operand_method[NUM_OF_ADDRESSING_METHODS];
+    int addressing_method[2][NUM_OF_ADDRESSING_METHODS];
 } OperationTable;
 
 /**
@@ -158,5 +157,8 @@ typedef struct
     unsigned int error_status : 1;
 } FileInfo;
 
+/*constant tables for the functions in this file*/
+extern const OperationTable operation_table[];
+extern const DataTable data_table[];
 
 #endif

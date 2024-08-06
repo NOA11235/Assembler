@@ -3,10 +3,6 @@
 
 #include "defs.h"
 
-/*Decleration of external variables*/
-extern const OperationTable operation_table[NUM_OF_OP];
-extern const DataTable data_table[NUM_OF_DATA];
-
 /*Function prototypes*/
 
 /**

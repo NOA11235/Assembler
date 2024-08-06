@@ -5,7 +5,7 @@ CFLAGS = -Wall -ansi -pedantic -g
 # Source files
 SRCS = assembler.c first_pass.c second_pass.c first_pass_utils.c second_pass_utils.c \
 	   first_pass_table_utils.c second_pass_table_utils.c data_utils.c \
-	   instruction_utils.c parser_utils.c
+	   instruction_utils.c parser_utils.c defs.c
 
 # Header files
 HDRS = $(SRCS:.c=.h) defs.h
@@ -29,4 +29,4 @@ $(TARGET): $(OBJS)
 
 # Clean up object files and executable
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) *.ent *.ob *.ext

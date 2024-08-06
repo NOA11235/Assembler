@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
         strcpy(filename, argv[i]);
         strcat(filename, ".as");
         file = fopen(filename, "r");
+        memset(filename, 0, sizeof(filename));
+        strcpy(filename, argv[i]);
         file_info.file = file;
         file_info.file_name = filename;
         /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/

@@ -29,7 +29,7 @@ void process_data_data(char *line, FileInfo *file_info, MachineCodeImage *machin
         /*checking if the data is valid*/
         for(i = 0; i < strlen(token); i++)
         {
-            if(isdigit(token[i]))
+            if(!isdigit(token[i]))
             {
                 printf(ERROR_MESSAGE, "invalid data");
                 file_info->error_status = 1;
