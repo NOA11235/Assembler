@@ -40,7 +40,8 @@ void process_data_data(char *line, FileInfo *file_info, MachineCodeImage *machin
         /*calculating the number if the data is negitive so it would be represented in the 2's complement method*/
         if(minus_flag)
         {
-            num = pow(2, BITS_IN_WORD) - num;
+            num = (~num) + 1; /*calculating the 2's complement*/
+            num = num & 0x7FFF; /*making sure the number is in the range of 15 bits*/
         }
         machine_code_image->data_array[machine_code_image->DC] = num;
         machine_code_image->DC++;
@@ -58,6 +59,10 @@ void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *mach
         machine_code_image->data_array[machine_code_image->DC] = token[i];
         machine_code_image->DC++;
     }
+
+    machine_code_image->data_array[machine_code_image->DC] = '\0'; /*adding '\0' to the end of the string*/
+    machine_code_image->DC++;
+
     /*checking for extraneous text after the end of command*/
     while((token = strtok(NULL, " \t")))
     {

@@ -57,16 +57,17 @@ int is_instruction(char line[])
     return 0;
 }
 
-void process_label(char *line[], FileInfo *file_info, Tables *tables, int counter)
+char *process_label(char line[], FileInfo *file_info, Tables *tables, int counter)
 {
     char label[MAX_LABEL_LENGTH], data_name[MAX_DATA_NAME_LENGTH];
     int is_data_label = 0;
-    sscanf(*line, "%s", label);
-    label[strlen(label)-1] = '\0'; /*remove ':'*/
-    sscanf(*line, "%s", data_name);
+    sscanf(line, "%s", label);
+    label[strlen(label) - 1] = '\0'; /*removing the ':' from the label*/
+    line = line + strlen(label) + 1; /*+1 for ':'*/
+    sscanf(line, "%s", data_name);
     if(strcmp(data_name, data_table[2].name) == 0 || strcmp(data_name, data_table[3].name) == 0)
     {
-        printf(ERROR_MESSAGE, "warning: label cannot be an entry or extern");
+        printf(ERROR_MESSAGE, "warning: label cannot be on a line with an entry or extern instruction");
         file_info->error_status = 1;
     }
     if(strcmp(data_name, data_table[0].name) == 0 || strcmp(data_name, data_table[1].name) == 0)
@@ -75,7 +76,7 @@ void process_label(char *line[], FileInfo *file_info, Tables *tables, int counte
     }
 
     add_label_to_table(tables, label, counter, is_data_label);
-    *line = *line + strlen(label) + 1; /*+1 for ':'*/
+    return line;
 }
 
 void process_data(char *line, FileInfo *file_info, Tables *tables, MachineCodeImage *machine_code_image)
@@ -122,7 +123,8 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
     {
         if(strcmp(token, operation_table[opcode].name) == 0)
         {
-            machine_code_image->instruction_array[machine_code_image->IC] = operation_table[opcode].code << 11;
+            machine_code_image->instruction_array[machine_code_image->IC] = 1 << 2; /*inserting 'A' field into the instruction word*/
+            machine_code_image->instruction_array[machine_code_image->IC] |= operation_table[opcode].code << 11;
             break;
         }
     }
@@ -147,7 +149,7 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
         }
 
         token = comma_parser(token, &comma_flag, file_info);
-
+        
         /*finding the addressing method of the operand*/
         if(token[0] == '#')
         {
@@ -156,14 +158,20 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
         else if(token[0] == '*' && token[1] == 'r' && isdigit(token[2]))
         {
             /*dealing with the situation that both the operands are registers and therfore there most be only one data word*/
-            source_register_flag = (i == 0)? 1 : 0;
+            if(i == 0)
+            {
+                source_register_flag = 1;
+            }
             word_count += (i == 1 && source_register_flag)? 0 : 1;
             process_indirect_register(token, opcode, i+1, word_count, file_info, machine_code_image);
         }
         else if(token[0] == 'r' && isdigit(token[1]))
         {
             /*dealing with the situation that both the operands are registers and therfore there most be only one data word*/
-            source_register_flag = (i == 0)? 1 : 0;
+            if(i == 0)
+            {
+                source_register_flag = 1;
+            }
             word_count += (i == 1 && source_register_flag)? 0 : 1;
             process_direct_register(token, opcode, i+1, word_count, file_info, machine_code_image);
         }

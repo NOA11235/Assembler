@@ -53,7 +53,7 @@ void process_label_operands(FileInfo *file_info, Tables *tables, MachineCodeImag
             current_extern = current_extern->next;
         }
         /*update the instruction array*/
-        machine_code_image->instruction_array[current_operand->position_in_instruction_array] = (address == 0)? (address << 3) | 1  : (address << 3) | (1 << 2);
+        machine_code_image->instruction_array[current_operand->position_in_instruction_array] = (address == 0)? (address << 3) | 1  : (address << 3) | (1 << 1);
         current_operand = current_operand->next;
     }
 

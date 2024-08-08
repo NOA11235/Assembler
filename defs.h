@@ -32,7 +32,7 @@ typedef struct LabelTableNode
 {
     char name[MAX_LABEL_LENGTH + 1]; /*+1 for '\0'*/
     int address;
-    int is_data : 1; /*one bit flag*/
+    unsigned int is_data : 1; /*one bit flag*/
     struct LabelTableNode *next;
 } LabelTableNode;
 
@@ -119,8 +119,8 @@ typedef struct
  */
 typedef struct
 {
-    unsigned int instruction_array[MAX_PROGRAM_LENGTH];
-    unsigned int data_array[MAX_PROGRAM_LENGTH];
+    unsigned short int instruction_array[MAX_PROGRAM_LENGTH];
+    unsigned short int data_array[MAX_PROGRAM_LENGTH];
     int IC;
     int DC;
 } MachineCodeImage;

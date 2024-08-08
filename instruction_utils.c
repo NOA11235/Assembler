@@ -3,10 +3,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 void process_immediate(char *token, int opcode, int operand_num, int word_count, FileInfo *file_info, MachineCodeImage *machine_code_image)
 {
-    int i, num;
+    int i, num, minus_flag = 0;
     /*checking if addressing method is allowed*/
     if(!operation_table[opcode].addressing_method[operand_num - 1][0])
     {
@@ -14,6 +15,7 @@ void process_immediate(char *token, int opcode, int operand_num, int word_count,
         file_info->error_status = 1;
         return;
     }
+    minus_flag = (token[1] == '-')? 1 : 0; /*checking if the immediate value is negitive*/
     token = (token[1] == '+' || token[1] == '-')? token + 2: token + 1; /*getting rid of '#' and a positive or negitive sign*/
     for(i = 0; i < strlen(token); i++)
     {
@@ -24,14 +26,19 @@ void process_immediate(char *token, int opcode, int operand_num, int word_count,
             return;
         }
     }
-    /*inserting 'A' field into the instruction and information word*/
-    machine_code_image->instruction_array[machine_code_image->IC] |= 1 << 2;
+    /*inserting 'A' field into the information word*/
     machine_code_image->instruction_array[machine_code_image->IC + word_count] |= 1 << 2;
     /*inserting addressing method 0 in source or target*/
     machine_code_image->instruction_array[machine_code_image->IC] |= \
     (operand_num == 1 && operation_table[opcode].num_of_operands == 2)? 1 << 7 : 1 << 3;
     /*inserting immediate value into the the information word*/
     num = atoi(token);
+    /*calculating the number if the data is negitive so it would be represented in the 2's complement method*/
+    if(minus_flag)
+    {
+        num = (~num) + 1; /*calculating the 2's complement*/
+        num = num & 0x7FFF; /*making sure the number is in the range of 15 bits*/
+    }
     machine_code_image->instruction_array[machine_code_image->IC + word_count] |= num << 3;
 }
 
@@ -66,8 +73,7 @@ void process_indirect_register(char *token, int opcode, int operand_num, int wor
         file_info->error_status = 1;
     }
 
-    /*inserting 'A' field into the instruction and information word*/
-    machine_code_image->instruction_array[machine_code_image->IC] |= 1 << 2;
+    /*inserting 'A' field into the information word*/
     machine_code_image->instruction_array[machine_code_image->IC + word_count] |= 1 << 2;
     /*inserting addressing method 2 into source or target. If there is only one operand the method is inserted into the target*/
     machine_code_image->instruction_array[machine_code_image->IC] |= \
@@ -77,7 +83,7 @@ void process_indirect_register(char *token, int opcode, int operand_num, int wor
 
     /*inserting register number into the information word*/
     machine_code_image->instruction_array[machine_code_image->IC + word_count] |= \
-    (operand_num == 1 && operation_table[opcode].num_of_operands == 2)? num << 7 : num << 3;
+    (operand_num == 1 && operation_table[opcode].num_of_operands == 2)? num << 6 : num << 3;
 }
 
 void process_direct_register(char *token, int opcode, int operand_num, int word_count, FileInfo *file_info, MachineCodeImage *machine_code_image)
@@ -111,8 +117,7 @@ void process_direct_register(char *token, int opcode, int operand_num, int word_
         file_info->error_status = 1;
     }
 
-    /*inserting 'A' field into the instruction and information word*/
-    machine_code_image->instruction_array[machine_code_image->IC] |= 1 << 2;
+    /*inserting 'A' field into the information word*/
     machine_code_image->instruction_array[machine_code_image->IC + word_count] |= 1 << 2;
     /*inserting addressing method 3 into source or target. If there is only one operand the method is inserted into the target*/
     machine_code_image->instruction_array[machine_code_image->IC] |= \
@@ -122,7 +127,7 @@ void process_direct_register(char *token, int opcode, int operand_num, int word_
 
     /*inserting register number into the information word*/
     machine_code_image->instruction_array[machine_code_image->IC + word_count] |= \
-    (operand_num == 1 && operation_table[opcode].num_of_operands == 2)? num << 7 : num << 3;
+    (operand_num == 1 && operation_table[opcode].num_of_operands == 2)? num << 6 : num << 3;
 }
 
 void process_direct(char *token, int opcode, int operand_num, int word_count, FileInfo *file_info, MachineCodeImage *machine_code_image)
@@ -134,8 +139,6 @@ void process_direct(char *token, int opcode, int operand_num, int word_count, Fi
         return;
     }
 
-    /*inserting 'A' field into the instruction word*/
-    machine_code_image->instruction_array[machine_code_image->IC] |= 1 << 2;
     /*inserting addressing method 1 into source or target. If there is only one operand the method is inserted into the target*/
     machine_code_image->instruction_array[machine_code_image->IC] |= \
     (operand_num == 1 && operation_table[opcode].num_of_operands == 2)? 1 << 8 : 1 << 4;

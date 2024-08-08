@@ -40,12 +40,13 @@ int is_instruction(char line[]);
 /**
  * @brief Wrapper function for adding label to the label table. The function gets rid of the label from the line.
  * 
- * @param line A pointer to the line containing the label to process.
+ * @param line The line containing the label to process.
  * @param file_info A pointer to the FileInfo struct containing information about the file.
  * @param tables A pointer to the Tables struct containing the tables.
  * @param counter The segment counter IC or DC.
+ * @return The line without the label.
  */
-void process_label(char *line[], FileInfo *file_info, Tables *tables, int counter);
+char *process_label(char line[], FileInfo *file_info, Tables *tables, int counter);
 
 /**
  * @brief Processes the data command in the line.

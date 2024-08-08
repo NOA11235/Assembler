@@ -57,7 +57,10 @@ int read_line(char *line, FileInfo *file_info)
         printf(ERROR_MESSAGE, "error: line is too long");
         file_info->error_status = 1;
     }
-    line[strlen(line)-1] = '\0'; /*getting rid of '\n'*/
+    if(!feof(file_info->file))
+    {
+        line[strlen(line)-1] = '\0'; /*getting rid of '\n'*/
+    }
     return 1;
 }
 

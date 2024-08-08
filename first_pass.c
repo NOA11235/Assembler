@@ -20,16 +20,20 @@ void first_pass(MachineCodeImage *machine_code_image, Tables *tables, FileInfo *
         {
             continue;
         }
-        if(is_label(line))
-        {
-            process_label(&line_ptr, file_info, tables, machine_code_image->IC);
-        }
         if(is_data(line))
         {
+            if(is_label(line))
+            {
+                line_ptr = process_label(line, file_info, tables, machine_code_image->DC);
+            }
             process_data(line_ptr, file_info, tables, machine_code_image);
         }
         else if(is_instruction(line))
         {
+            if(is_label(line))
+            {
+                line_ptr = process_label(line, file_info, tables, machine_code_image->IC);
+            }
             process_instruction(line_ptr, file_info, tables, machine_code_image);
         }
     }
