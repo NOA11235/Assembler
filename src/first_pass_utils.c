@@ -95,11 +95,11 @@ void process_data(char *line, FileInfo *file_info, Tables *tables, MachineCodeIm
     }
     else if(strcmp(data_name, data_table[2].name) == 0)
     {
-        process_entry_data(line, tables);
+        process_entry_data(line, file_info, tables);
     }
     else if(strcmp(data_name, data_table[3].name) == 0)
     {
-        process_extern_data(line, tables);
+        process_extern_data(line, file_info, tables);
     }
     else
     {
@@ -140,7 +140,8 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
     for(i = 0; i < operation_table[opcode].num_of_operands; i++)
     {
         token = strtok(NULL, " \t"); /*this token consists of the operand*/
-        /*checking if there is an operand*/
+
+        /*checking if there are to few operands*/
         if(token == NULL)
         {
             printf(ERROR_MESSAGE, "missing operand");
@@ -188,6 +189,13 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
     if(strtok(NULL, " \t") != NULL)
     {
         printf(ERROR_MESSAGE, "too many operands");
+        file_info->error_status = 1;
+    }
+
+    /*checking if there is a comma at the end of the line of a command with operands*/
+    if(!comma_flag && i != 0)
+    {
+        printf(ERROR_MESSAGE, "error: unnecessary comma at the end of the command");
         file_info->error_status = 1;
     }
 }

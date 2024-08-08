@@ -36,4 +36,11 @@ void print_entry_labels(FileInfo *file_info, Tables *tables);
  */
 void print_extern_labels(FileInfo *file_info, Tables *tables);
 
+/**
+ * @brief frees the memory allocated for the tables.
+ * 
+ * @param tables A pointer to the Tables struct containing the tables.
+ */
+void free_tables(Tables *tables);
+
 #endif

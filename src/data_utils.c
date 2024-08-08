@@ -17,6 +17,7 @@ void process_data_data(char *line, FileInfo *file_info, MachineCodeImage *machin
     do
     {
         token = comma_parser(token, &comma_flag, file_info);
+
         /*checking for sign in the beginning*/
         if(token[0] == '+' || token[0] == '-')
         {
@@ -46,6 +47,13 @@ void process_data_data(char *line, FileInfo *file_info, MachineCodeImage *machin
         machine_code_image->data_array[machine_code_image->DC] = num;
         machine_code_image->DC++;
     } while((token = strtok(NULL, " \t")) != NULL);
+
+    /*checking if there is a comma at the end of the line*/
+    if(!comma_flag)
+    {
+        printf(ERROR_MESSAGE, "error: unnecessary comma at the end of the command");
+        file_info->error_status = 1;
+    }
 }
 
 void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *machine_code_image)
@@ -78,14 +86,28 @@ void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *mach
     }
 }
 
-void process_entry_data(char *line, Tables *tables)
+void process_entry_data(char *line, FileInfo *file_info, Tables *tables)
 {
     char *label = strtok(line, " \t"); /*this token consists of label name*/
     add_entry_to_table(tables, label);
+
+    /*checking for extraneous text after the end of command*/
+    if(strtok(NULL, " \t"))
+    {
+        printf(ERROR_MESSAGE, "error: extraneous text after the end of command");
+        file_info->error_status = 1;
+    }
 }
 
-void process_extern_data(char *line, Tables *tables)
+void process_extern_data(char *line, FileInfo *file_info, Tables *tables)
 {
     char *label = strtok(line, " \t"); /*this token consists of label name*/
     add_extern_to_table(tables, label);
+
+    /*checking for extraneous text after the end of command*/
+    if(strtok(NULL, " \t"))
+    {
+        printf(ERROR_MESSAGE, "error: extraneous text after the end of command");
+        file_info->error_status = 1;
+    }
 }

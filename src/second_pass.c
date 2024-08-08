@@ -18,4 +18,5 @@ void second_pass(MachineCodeImage *machine_code_image, Tables *tables, FileInfo 
     print_entry_labels(file_info, tables);
     print_extern_labels(file_info, tables);
     print_machine_code(file_info, machine_code_image);
+    free_tables(tables);
 }

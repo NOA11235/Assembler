@@ -11,6 +11,12 @@ char *comma_parser(char *token, int *comma_flag, FileInfo *file_info)
         if(strcmp(token, ",") == 0)
         {
             token = strtok(NULL, " \t");
+            if(!token)
+            {
+                printf(ERROR_MESSAGE, "error: unnecessary comma at the end of the command");
+                file_info->error_status = 1;
+                return NULL;
+            }
         }
         else if(token[0] != ',')
         {
@@ -30,6 +36,7 @@ char *comma_parser(char *token, int *comma_flag, FileInfo *file_info)
     {
         *comma_flag = 1;
     }
+
     return token;
 }
 

@@ -37,7 +37,7 @@ void process_immediate(char *token, int opcode, int operand_num, int word_count,
     if(minus_flag)
     {
         num = (~num) + 1; /*calculating the 2's complement*/
-        num = num & 0x7FFF; /*making sure the number is in the range of 15 bits*/
+        num = num & 0xFFF; /*making sure the number is in the range of 12 bits*/
     }
     machine_code_image->instruction_array[machine_code_image->IC + word_count] |= num << 3;
 }

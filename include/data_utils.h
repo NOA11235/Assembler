@@ -27,16 +27,18 @@ void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *mach
  * @brief Processes the .entry line.
  * 
  * @param line The line to process.
+ * @param file_info A pointer to the FileInfo struct containing information about the file.
  * @param tables A pointer to the Tables struct containing the tables.
  */
-void process_entry_data(char *line, Tables *tables);
+void process_entry_data(char *line, FileInfo *file_info, Tables *tables);
 
 /**
  * @brief Processes the .extern line.
  * 
  * @param line The line to process.
+ * @param file_info A pointer to the FileInfo struct containing information about the file.
  * @param tables A pointer to the Tables struct containing the tables.
  */
-void process_extern_data(char *line, Tables *tables);
+void process_extern_data(char *line, FileInfo *file_info, Tables *tables);
 
 #endif 

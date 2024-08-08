@@ -40,7 +40,7 @@ void process_label_operands(FileInfo *file_info, Tables *tables, MachineCodeImag
         {
             printf("%s:%d: %s\n", file_info->file_name, tables->operand_label_table_head->position_in_file , "undefined label");
             file_info->error_status = 1;
-            continue;;
+            continue;
         }
         /*check if label is external*/
         while (current_extern != NULL)
@@ -52,12 +52,10 @@ void process_label_operands(FileInfo *file_info, Tables *tables, MachineCodeImag
             }
             current_extern = current_extern->next;
         }
-        /*update the instruction array*/
-        machine_code_image->instruction_array[current_operand->position_in_instruction_array] = (address == 0)? (address << 3) | 1  : (address << 3) | (1 << 1);
+        /*Update the instruction array. If the operand label is external 'E'=1, otherwise 'R'=1*/
+        machine_code_image->instruction_array[current_operand->position_in_instruction_array] = address << 3 | ((address == 0)? 1 : (1 << 1));
         current_operand = current_operand->next;
     }
-
-    machine_code_image->instruction_array[tables->operand_label_table_head->position_in_instruction_array] = address;
 }
 
 void print_entry_labels(FileInfo *file_info, Tables *tables)
@@ -110,7 +108,7 @@ void print_entry_labels(FileInfo *file_info, Tables *tables)
 void print_extern_labels(FileInfo *file_info, Tables *tables)
 {
     ExternTableNode *current_extern = tables->extern_table_head;
-    LabelTableNode *current_label;
+    OperandTableNode *current_operand_label;
     FILE *ext_file = NULL;
 
     char *filename = malloc(strlen(file_info->file_name) + 5); /*+5 for ".ext" and '\0'*/
@@ -123,10 +121,10 @@ void print_extern_labels(FileInfo *file_info, Tables *tables)
 
     while(current_extern != NULL)
     {
-        current_label = tables->label_table_head;
-        while(current_label != NULL)
+        current_operand_label = tables->operand_label_table_head;
+        while(current_operand_label != NULL)
         {
-            if(strcmp(current_extern->name, current_label->name) == 0)
+            if(strcmp(current_extern->name, current_operand_label->name) == 0)
             {
                 /*if file didn't exit yet, create and open it*/
                 if (ext_file == NULL) 
@@ -139,10 +137,9 @@ void print_extern_labels(FileInfo *file_info, Tables *tables)
                     }
                 }
                 /*write to file*/
-                fprintf(ext_file, "%s %04d\n", current_extern->name, current_label->address);
-                break;
+                fprintf(ext_file, "%s %04d\n", current_extern->name, current_operand_label->position_in_instruction_array + FIRST_ADDRESS);
             }
-            current_label = current_label->next;
+            current_operand_label = current_operand_label->next;
         }
         current_extern = current_extern->next;
     }
@@ -152,4 +149,41 @@ void print_extern_labels(FileInfo *file_info, Tables *tables)
         fclose(ext_file);
     }
     free(filename);
+}
+
+void free_tables(Tables *tables)
+{
+    LabelTableNode *current_label = tables->label_table_head;
+    LabelTableNode *next_label;
+    EntryTableNode *current_entry = tables->entry_table_head;
+    EntryTableNode *next_entry;
+    ExternTableNode *current_extern = tables->extern_table_head;
+    ExternTableNode *next_extern;
+    OperandTableNode *current_operand = tables->operand_label_table_head;
+    OperandTableNode *next_operand;
+
+    while (current_label != NULL)
+    {
+        next_label = current_label->next;
+        free(current_label);
+        current_label = next_label;
+    }
+    while (current_entry != NULL)
+    {
+        next_entry = current_entry->next;
+        free(current_entry);
+        current_entry = next_entry;
+    }
+    while (current_extern != NULL)
+    {
+        next_extern = current_extern->next;
+        free(current_extern);
+        current_extern = next_extern;
+    }
+    while (current_operand != NULL)
+    {
+        next_operand = current_operand->next;
+        free(current_operand);
+        current_operand = next_operand;
+    }
 }

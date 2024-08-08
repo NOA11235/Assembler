@@ -3,15 +3,15 @@ CC = gcc
 CFLAGS = -Wall -ansi -pedantic -g
 
 # Source files
-SRCS = assembler.c first_pass.c second_pass.c first_pass_utils.c second_pass_utils.c \
-	   first_pass_table_utils.c second_pass_table_utils.c data_utils.c \
-	   instruction_utils.c parser_utils.c defs.c
+SRCS = src/assembler.c src/first_pass.c src/second_pass.c src/first_pass_utils.c \
+	   src/second_pass_utils.c src/first_pass_table_utils.c src/second_pass_table_utils.c \
+	   src/data_utils.c src/instruction_utils.c src/parser_utils.c src/defs.c
 
 # Header files
-HDRS = $(SRCS:.c=.h) defs.h
+HDRS = $(wildcard include/*.h)
 
 # Object files
-OBJS = $(SRCS:.c=.o)
+OBJS = $(SRCS:src/%.c=build/%.o)
 
 # Executable name
 TARGET = assembler
@@ -20,8 +20,8 @@ TARGET = assembler
 all: $(TARGET)
 
 # Compile source files into object files
-%.o: %.c $(HDRS)
-	$(CC) $(CFLAGS) -c $< -o $@
+build/%.o: src/%.c $(HDRS)
+	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
 
 # Rule to build the executable file
 $(TARGET): $(OBJS)
