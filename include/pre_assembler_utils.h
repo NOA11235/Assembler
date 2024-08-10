@@ -6,14 +6,6 @@
 /*Function prototypes*/
 
 /**
- * @brief Checks if a given string is a valid macro name.
- * 
- * @param name The name to check.
- * @return int 1 if the name is valid, 0 otherwise.
- */
-int is_valid_macro_name(char *name);
-
-/**
  * @brief Processes a new macro definition.
  * 
  * @param line The line containing the macro definition.

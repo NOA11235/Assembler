@@ -1,33 +1,58 @@
 #include "defs.h"
 #include <stdlib.h>
-
-int is_valid_macro_name(char *name)
-{
-    
-}
+#include <stdio.h>
+#include <string.h>
 
 void process_macro_definition(char *line, FileInfo *file_info, Tables *tables)
 {
-    char macro_name[MAX_MACRO_NAME_LENGTH];
-    MacroTableNode *new_macro = (MacroTableNode*)malloc(sizeof(MacroTableNode));
-    if (new_macro == NULL)
-    {
-        printf("Allocation error\n");
-        exit(EXIT_FAILURE);
-    }
+    char *token;
+    int i;
 
     line = line + 5; /*getting rid of "macr ", +5 for "macr "*/
-    sscanf(line, "%s", macro_name);
- 
-    if (!is_valid_macro_name(macro_name))
+    token = strtok(line, " \t"); /*this token consists of the macro name*/
+
+    /*cheching if macro name is a data name*/
+    for(i = 0; i < NUM_OF_DATA; i++)
     {
-        printf(ERROR_MESSAGE, "error: invalid macro name");
+        if(strcmp(token, data_table[i].name) == 0)
+        {
+            printf(ERROR_MESSAGE, "error: macro name is identical to a data name");
+            file_info->error_status = 1;
+        }
+    }
+
+    /*cheching if macro name is to long*/
+    if(strlen(token) > MAX_MACRO_NAME_LENGTH)
+    {
+        printf(ERROR_MESSAGE, "error: macro name is too long");
         file_info->error_status = 1;
     }
 
-    strcpy(new_macro->name, macro_name);
-    new_macro->next = tables->macro_table_head;
-    tables->macro_table_head = new_macro;
+    /*cheching if macro name is an operation name*/
+    for(i = 0; i < NUM_OF_OP; i++)
+    {
+        if(strcmp(token, operation_table[i].name) == 0)
+        {
+            printf(ERROR_MESSAGE, "error: macro name is identical to an operation name");
+            file_info->error_status = 1;
+        }
+    }
+    
+    /*cheching if macro name is already exists*/
+    if(macro_name_already_exists(token, tables))
+    {
+        printf(ERROR_MESSAGE, "error: macro name already exists");
+        file_info->error_status = 1;
+    }
+
+    if(!(token = strtok(NULL, " \t"))) /*if there is more text after the macro name*/
+    {
+        printf(ERROR_MESSAGE, "error: extranous text after macro name");
+        file_info->error_status = 1;
+    }
+
+    /*if the macro name is valid, add it to the macro table*/
+    add_macro_to_macro_table(token, tables);
 }
 
 void process_end_of_macro_definition(char *line, FileInfo *file_info, Tables *tables)
