@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
-            "args": ["input1"],
+            "args": ["input2"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

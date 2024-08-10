@@ -9,6 +9,7 @@
 #define MAX_DATA_NAME_LENGTH 8
 #define MAX_LINE_LENGTH 80
 #define MAX_LABEL_LENGTH 31
+#define MAX_MACRO_NAME_LENGTH 31
 #define NUM_OF_OP 16
 #define NUM_OF_DATA 4
 #define NUM_OF_ADDRESSING_METHODS 4
@@ -16,9 +17,24 @@
 #define BITS_IN_WORD 15
 #define MAX_PROGRAM_LENGTH 1000
 #define FIRST_ADDRESS 100
-#define ERROR_MESSAGE "%s.as:%d: %s\n", file_info->file_name, file_info->line_count
+#define ERROR_MESSAGE "%s:%d: %s\n", file_info->file_name, file_info->line_count
 
 /*Dynamic Tables*/
+
+/**
+ * @brief A struct containing a node in the macro table.
+ * 
+ * @param name The name of the macro.
+ * @param macro_content The content of the macro.
+ * @param next A pointer to the next node in the table.
+ */
+typedef struct MacroTableNode
+{
+    char name[MAX_MACRO_NAME_LENGTH];
+    char *macro_content;
+    struct MacroTableNode *next;
+
+} MacroTableNode;
 
 /**
  * @brief A struct containing a node in the label table.
@@ -135,6 +151,7 @@ typedef struct
  */
 typedef struct
 {
+    MacroTableNode *macro_table_head;
     LabelTableNode *label_table_head;
     EntryTableNode *entry_table_head;
     ExternTableNode *extern_table_head;

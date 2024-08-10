@@ -9,23 +9,14 @@
 int main(int argc, char *argv[])
 {
     int i;
-    /*FILE *am_file;*/
-    /*structers for first and second pass*/
+    FILE *am_file, *as_file;
     MachineCodeImage machine_code_image;
     Tables tables;
     FileInfo file_info;
 
     for(i = 1; i < argc; i++)
     {
-
-        /*am_file = interpret_macro(argv[i]);*/
-
-        /*inserting file information into file_info*/
-        /*file_info.file = am_file;*/
-
-        /*TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-        char filename[16];
-        FILE *file;
+        char *filename = (char *)malloc(strlen(argv[i]) + 4); /*+4 for the ".as" \ ".am" and '\0'*/
 
         /*resetting the structers for the next file*/
         memset(&machine_code_image, 0, sizeof(MachineCodeImage));
@@ -34,19 +25,29 @@ int main(int argc, char *argv[])
 
         strcpy(filename, argv[i]);
         strcat(filename, ".as");
-        file = fopen(filename, "r");
-        memset(filename, 0, sizeof(filename));
-        strcpy(filename, argv[i]);
-        file_info.file = file;
-        file_info.file_name = filename;
-        /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+        am_file = fopen(filename, "r");
+        if(am_file == NULL)
+        {
+            printf("Error: %s file not found\n", filename);
+            free(filename);
+            continue;
+        }
 
+        file_info.file = as_file;
+        file_info.file_name = filename;
+
+        am_file = interpret_macro(&file_info, &tables);
+
+        if(am_file == NULL) /*if there was an error detected in the pre_assembler function*/
+        {
+            continue;
+        }
+        memset(&file_info, 0, sizeof(FileInfo));
         first_pass(&machine_code_image, &tables, &file_info);
         second_pass(&machine_code_image, &tables, &file_info);
-        /*temporary!!!!!*/
-        fclose(file);
 
-        /*fclose(am_file); closing the file*/
+        fclose(as_file);
+        fclose(am_file);
     }
     return 0;
 }

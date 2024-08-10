@@ -22,6 +22,14 @@ int is_empty(char line[]);
 int is_comment(char line[]);
 
 /**
+ * @brief This function checks if a line contains a label.
+ * 
+ * @param line The line to check.
+ * @return 1 if the line is contains a label, 0 otherwise.
+ */
+int is_label(char line[]);
+
+/**
  * @brief Checks if a line is a data command.
  * 
  * @param line The line to check.

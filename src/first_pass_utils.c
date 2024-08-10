@@ -31,6 +31,17 @@ int is_comment(char line[])
     return 0;
 }
 
+int is_label(char line[])
+{
+    char label[MAX_LABEL_LENGTH];
+    sscanf(line, "%s", label);
+    if(label[strlen(label)-1] == ':')
+    {
+        return 1;
+    }
+    return 0;
+}
+
 int is_data(char line[])
 {
     int i;
@@ -103,7 +114,7 @@ void process_data(char *line, FileInfo *file_info, Tables *tables, MachineCodeIm
     }
     else
     {
-        printf(ERROR_MESSAGE, "invalid data name");
+        printf(ERROR_MESSAGE, "error: invalid data name");
         file_info->error_status = 1;
     }
 }
@@ -132,7 +143,7 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
     /*checking if operation name is invalid*/
     if(opcode == NUM_OF_OP)
     {
-        printf(ERROR_MESSAGE, "invalid operation name");
+        printf(ERROR_MESSAGE, "error: invalid operation name");
         file_info->error_status = 1;
         return;
     }
@@ -140,23 +151,22 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
     for(i = 0; i < operation_table[opcode].num_of_operands; i++)
     {
         token = strtok(NULL, " \t"); /*this token consists of the operand*/
+        token = comma_parser(token, &comma_flag, file_info);
 
         /*checking if there are to few operands*/
         if(token == NULL)
         {
-            printf(ERROR_MESSAGE, "missing operand");
+            printf(ERROR_MESSAGE, "error: missing operand");
             file_info->error_status = 1;
             return;
         }
-
-        token = comma_parser(token, &comma_flag, file_info);
         
         /*finding the addressing method of the operand*/
         if(token[0] == '#')
         {
             process_immediate(token, opcode, i+1, ++word_count, file_info, machine_code_image);
         }
-        else if(token[0] == '*' && token[1] == 'r' && isdigit(token[2]))
+        else if(token[0] == '*' && is_register(token + 1))
         {
             /*dealing with the situation that both the operands are registers and therfore there most be only one data word*/
             if(i == 0)
@@ -166,7 +176,7 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
             word_count += (i == 1 && source_register_flag)? 0 : 1;
             process_indirect_register(token, opcode, i+1, word_count, file_info, machine_code_image);
         }
-        else if(token[0] == 'r' && isdigit(token[1]))
+        else if(is_register(token))
         {
             /*dealing with the situation that both the operands are registers and therfore there most be only one data word*/
             if(i == 0)
@@ -185,11 +195,19 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
     }
     machine_code_image->IC += word_count + 1; /*+1 for the instruction word*/
 
-    /*checking if there are too many operands*/
-    if(strtok(NULL, " \t") != NULL)
+    /*if the next token isn't empty*/
+    if((token = strtok(NULL, " \t")))
     {
-        printf(ERROR_MESSAGE, "too many operands");
+        if(!comma_flag || (comma_flag && (token[0] == ','))) /*if there is a comma at the end of the last line or at the beginnig of this line*/
+        {
+            printf(ERROR_MESSAGE, "error: to many operands");
+        }
+        else
+        {
+            printf(ERROR_MESSAGE, "error: extraneous text after the end of the command");
+        }
         file_info->error_status = 1;
+        return;
     }
 
     /*checking if there is a comma at the end of the line of a command with operands*/

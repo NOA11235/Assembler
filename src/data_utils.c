@@ -27,17 +27,27 @@ void process_data_data(char *line, FileInfo *file_info, MachineCodeImage *machin
             }
             token++;
         }
+
         /*checking if the data is valid*/
         for(i = 0; i < strlen(token); i++)
         {
             if(!isdigit(token[i]))
             {
-                printf(ERROR_MESSAGE, "invalid data");
+                printf(ERROR_MESSAGE, "error: data must be an integer");
                 file_info->error_status = 1;
             }
         }
+
         /*converting the data to integer and adding it to the memory picture*/
         num = atoi(token);
+
+        /*checking if the data is in the range of 15 bits*/
+        if(num < -pow(2, 14) || num >= pow(2, 14))
+        {
+            printf(ERROR_MESSAGE, "error: data is out of range");
+            file_info->error_status = 1;
+        }
+        
         /*calculating the number if the data is negitive so it would be represented in the 2's complement method*/
         if(minus_flag)
         {
@@ -78,7 +88,7 @@ void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *mach
         {
             if(token[i] != '\t' && token[i] != ' ')
             {
-                printf(ERROR_MESSAGE, "extraneous text after the end of word");
+                printf(ERROR_MESSAGE, "error: extraneous text after the end of word");
                 file_info->error_status = 1;    
                 break;
             }

@@ -34,11 +34,11 @@ char *walkthrough_white_spaces(char *line);
 int read_line(char *line, FileInfo *file_info);
 
 /**
- * @brief This function checks if a line contains a label.
+ * @brief This function checks if a token is a register.
  * 
- * @param line The line to check.
- * @return 1 if the line is contains a label, 0 otherwise.
+ * @param token The token to check.
+ * @return 1 if the token is a register, 0 otherwise.
  */
-int is_label(char line[]);
+int is_register(char *token);
 
 #endif
