@@ -6,13 +6,21 @@
 /*Function prototypes*/
 
 /**
+ * @brief Creates a .am file.
+ * 
+ * @param filename The name of the file.
+ * @return A pointer to the file.
+ */
+FILE *create_am_file(const char *filename);
+
+/**
  * @brief Processes a new macro definition.
  * 
  * @param line The line containing the macro definition.
  * @param file_info A pointer to the file info.
  * @param tableshe pointer to the tables.
  */
-vo Tid process_macro_definition(char *line, FileInfo *file_info, Tables *tables);
+void process_macro_definition(char *line, FileInfo *file_info, Tables *tables);
 
 /**
  * @brief Processes the end of a macro definition.
@@ -22,24 +30,5 @@ vo Tid process_macro_definition(char *line, FileInfo *file_info, Tables *tables)
  * @param tables A pointer to the tables.
  */
 void process_end_of_macro_definition(char *line, FileInfo *file_info, Tables *tables);
-
-/**
- * @brief Adds the content of a macro to the macro table.
- * 
- * @param line The line containing the macro content.
- * @param file_info A pointer to the file info.
- * @param tables A pointer to the tables.
- */
-void add_content_to_macro(char *line, FileInfo *file_info, Tables *tables);
-
-/**
- * @brief Finds a macro in the macro table and prints it.
- * 
- * @param line The first word in the line.
- * @param file_info A pointer to the file info.
- * @param tables A pointer to the tables.
- * @return int 1 if the macro was found and printed, 0 otherwise.
- */
-int find_macro_and_print(char *line, FileInfo *file_info, Tables *tables);
 
 #endif

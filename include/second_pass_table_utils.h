@@ -4,14 +4,6 @@
 #include "defs.h"
 
 /**
- * @brief Adds values to the addresses of the labels in the label table.
- * 
- * @param tables A pointer to the Tables struct containing the tables.
- * @param data_offset The offset of the data segment.
- */
-void add_values_to_label_table(Tables *tables, int data_offset);
-
-/**
  * @brief Assigns the addresses of the labels to the direct addressing operands in the machine code image.
  * 
  * @param file_info A pointer to the FileInfo struct containing information about the file.
@@ -37,7 +29,7 @@ void print_entry_labels(FileInfo *file_info, Tables *tables);
 void print_extern_labels(FileInfo *file_info, Tables *tables);
 
 /**
- * @brief frees the memory allocated for the tables.
+ * @brief Frees the memory allocated for the tables.
  * 
  * @param tables A pointer to the Tables struct containing the tables.
  */

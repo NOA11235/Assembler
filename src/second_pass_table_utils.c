@@ -5,100 +5,72 @@
 #include <string.h>
 
 /*for the second pass*/
-void add_values_to_label_table(Tables *tables, int data_offset)
-{
-    LabelTableNode *current = tables->label_table_head;
-    while (current != NULL)
-    {
-        current->address += (current->is_data)? FIRST_ADDRESS + data_offset : FIRST_ADDRESS;
-        current = current->next;
-    }
-}
 
 void process_label_operands(FileInfo *file_info, Tables *tables, MachineCodeImage *machine_code_image)
 {
-    int address = -1;
+    int symbol_found;
+    SymbolTableNode *current_symbol;
     OperandTableNode *current_operand = tables->operand_label_table_head;
-    LabelTableNode *current_label;
-    ExternTableNode *current_extern;
-
     while (current_operand != NULL)
-    {
-        current_label = tables->label_table_head;
-        current_extern = tables->extern_table_head;
-        while (current_label != NULL)
+    {   
+        symbol_found = 0;
+        current_symbol = tables->symbol_table_head;
+        while (current_symbol != NULL)
         {
-            if (strcmp(current_operand->name, current_label->name) == 0)
+            if (strcmp(current_operand->name, current_symbol->name) == 0)
             {
-                address = current_label->address;
+                machine_code_image->instruction_array[current_operand->position_in_instruction_array] = current_symbol->address << 3;
+                /*if the label is external, then E=1, otherwise R=1*/
+                machine_code_image->instruction_array[current_operand->position_in_instruction_array] |= (current_symbol->is_extern)? 1 : 1<<1;
+                symbol_found = 1;
                 break;
             }
-            current_label = current_label->next;
+            current_symbol = current_symbol->next;
         }
-        /*if label is not defined*/
-        if (address == -1)
+        if (!symbol_found)
         {
-            printf("%s:%d: %s\n", file_info->file_name, tables->operand_label_table_head->position_in_file , "undefined label");
+            printf("%s.am:%d: error: label was not defined in the file\n", file_info->base_filename, current_operand->position_in_file);
             file_info->error_status = 1;
-            continue;
         }
-        /*check if label is external*/
-        while (current_extern != NULL)
-        {
-            if (strcmp(current_operand->name, current_extern->name) == 0)
-            {
-                address = 0;
-                break;
-            }
-            current_extern = current_extern->next;
-        }
-        /*Update the instruction array. If the operand label is external 'E'=1, otherwise 'R'=1*/
-        machine_code_image->instruction_array[current_operand->position_in_instruction_array] = address << 3 | ((address == 0)? 1 : (1 << 1));
         current_operand = current_operand->next;
     }
 }
 
 void print_entry_labels(FileInfo *file_info, Tables *tables)
 {
-    EntryTableNode *current_entry = tables->entry_table_head;    
-    LabelTableNode *current_label;
+    SymbolTableNode *current_label = tables->symbol_table_head;
     FILE *ent_file = NULL;
 
-    char *filename = malloc(strlen(file_info->file_name) + 5); /*+5 for ".ent" and '\0'*/
+    char *filename = malloc(strlen(file_info->base_filename) + 5); /*+5 for ".ent" and '\0'*/
     if(filename == NULL)
     {
         printf("Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    sprintf(filename, "%s.ent", file_info->file_name);
+    sprintf(filename, "%s.ent", file_info->base_filename);
 
-    while(current_entry != NULL)
+    while(current_label != NULL)
     {
-        current_label = tables->label_table_head;
-        while(current_label != NULL)
+        if(current_label->is_entry)
         {
-            if(strcmp(current_entry->name, current_label->name) == 0)
+            /*if file didn't exit yet, create and open it*/
+            if(ent_file == NULL) 
             {
-                /*if file didn't exit yet, create and open it*/
+                ent_file = fopen(filename, "w");
                 if (ent_file == NULL) 
                 {
-                    ent_file = fopen(filename, "w");
-                    if (ent_file == NULL) 
-                    {
-                        printf("Error opening file");
-                        exit(EXIT_FAILURE);
-                    }
+                    printf("Error opening file");
+                    exit(EXIT_FAILURE);
                 }
-                /*write to file*/
-                fprintf(ent_file, "%s %d\n", current_entry->name, current_label->address);
-                break;
             }
-            current_label = current_label->next;
+            /*write to file*/
+            fprintf(ent_file, "%s %04d\n", current_label->name, current_label->address);
         }
-        current_entry = current_entry->next;
+        current_label = current_label->next;
     }
+
     /*close ent_file if it was opened*/
-    if (ent_file != NULL) 
+    if(ent_file != NULL) 
     {
         fclose(ent_file);
     }
@@ -107,24 +79,24 @@ void print_entry_labels(FileInfo *file_info, Tables *tables)
 
 void print_extern_labels(FileInfo *file_info, Tables *tables)
 {
-    ExternTableNode *current_extern = tables->extern_table_head;
+    SymbolTableNode *current_label = tables->symbol_table_head;
     OperandTableNode *current_operand_label;
     FILE *ext_file = NULL;
 
-    char *filename = malloc(strlen(file_info->file_name) + 5); /*+5 for ".ext" and '\0'*/
+    char *filename = malloc(strlen(file_info->base_filename) + 5); /*+5 for ".ext" and '\0'*/
     if(filename == NULL)
     {
         printf("Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    sprintf(filename, "%s.ext", file_info->file_name);
+    sprintf(filename, "%s.ext", file_info->base_filename);
 
-    while(current_extern != NULL)
+    while(current_label != NULL)
     {
         current_operand_label = tables->operand_label_table_head;
         while(current_operand_label != NULL)
         {
-            if(strcmp(current_extern->name, current_operand_label->name) == 0)
+            if(strcmp(current_label->name, current_operand_label->name) == 0 && current_label->is_extern)
             {
                 /*if file didn't exit yet, create and open it*/
                 if (ext_file == NULL) 
@@ -137,11 +109,11 @@ void print_extern_labels(FileInfo *file_info, Tables *tables)
                     }
                 }
                 /*write to file*/
-                fprintf(ext_file, "%s %04d\n", current_extern->name, current_operand_label->position_in_instruction_array + FIRST_ADDRESS);
+                fprintf(ext_file, "%s %04d\n", current_label->name, current_operand_label->position_in_instruction_array + FIRST_ADDRESS);
             }
             current_operand_label = current_operand_label->next;
         }
-        current_extern = current_extern->next;
+        current_label = current_label->next;
     }
     /*close ent_file if it was opened*/
     if (ext_file != NULL) 
@@ -153,32 +125,25 @@ void print_extern_labels(FileInfo *file_info, Tables *tables)
 
 void free_tables(Tables *tables)
 {
-    LabelTableNode *current_label = tables->label_table_head;
-    LabelTableNode *next_label;
-    EntryTableNode *current_entry = tables->entry_table_head;
-    EntryTableNode *next_entry;
-    ExternTableNode *current_extern = tables->extern_table_head;
-    ExternTableNode *next_extern;
+    MacroTableNode *current_macro = tables->macro_table_head;
+    MacroTableNode *next_macro;
+    SymbolTableNode *current_symbol = tables->symbol_table_head;
+    SymbolTableNode *next_symbol;
     OperandTableNode *current_operand = tables->operand_label_table_head;
     OperandTableNode *next_operand;
 
-    while (current_label != NULL)
+    while (current_macro != NULL)
     {
-        next_label = current_label->next;
-        free(current_label);
-        current_label = next_label;
+        next_macro = current_macro->next;
+        free(current_macro->content);
+        free(current_macro);
+        current_macro = next_macro;
     }
-    while (current_entry != NULL)
+    while (current_symbol != NULL)
     {
-        next_entry = current_entry->next;
-        free(current_entry);
-        current_entry = next_entry;
-    }
-    while (current_extern != NULL)
-    {
-        next_extern = current_extern->next;
-        free(current_extern);
-        current_extern = next_extern;
+        next_symbol = current_symbol->next;
+        free(current_symbol);
+        current_symbol = next_symbol;
     }
     while (current_operand != NULL)
     {

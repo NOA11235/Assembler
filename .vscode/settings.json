@@ -9,6 +9,7 @@
         "math.h": "c",
         "string.h": "c",
         "defs.h": "c",
-        "second_pass_table_utils.h": "c"
+        "second_pass_table_utils.h": "c",
+        "pre_assembler_table_utils.h": "c"
     }
 }

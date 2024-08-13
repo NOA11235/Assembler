@@ -17,7 +17,8 @@
 #define BITS_IN_WORD 15
 #define MAX_PROGRAM_LENGTH 1000
 #define FIRST_ADDRESS 100
-#define ERROR_MESSAGE "%s:%d: %s\n", file_info->file_name, file_info->line_count
+#define MACRO_ERROR_MESSAGE "%s.as:%d: %s\n", file_info->base_filename, file_info->line_count
+#define ERROR_MESSAGE "%s.am:%d: %s\n", file_info->base_filename, file_info->line_count
 
 /*Dynamic Tables*/
 
@@ -31,50 +32,22 @@
 typedef struct MacroTableNode
 {
     char name[MAX_MACRO_NAME_LENGTH];
-    char *macro_content;
+    char *content;
     struct MacroTableNode *next;
 
 } MacroTableNode;
 
-/**
- * @brief A struct containing a node in the label table.
- * 
- * @param name The name of the label.
- * @param address The address of the label.
- * @param is_data A flag indicating if the label is a label to a data command.
- * @param next A pointer to the next node in the table.
- */
-typedef struct LabelTableNode
+typedef struct SymbolTableNode
 {
     char name[MAX_LABEL_LENGTH + 1]; /*+1 for '\0'*/
     int address;
+    int position_in_file;
+    unsigned int is_instruction : 1; /*one bit flag*/
     unsigned int is_data : 1; /*one bit flag*/
-    struct LabelTableNode *next;
-} LabelTableNode;
-
-/**
- * @brief A struct containing a node in the entry table.
- * 
- * @param name The name of the entry label.
- * @param next A pointer to the next node in the table.
- */
-typedef struct EntryTableNode
-{
-    char name[MAX_LABEL_LENGTH + 1]; /*+1 for '\0'*/
-    struct EntryTableNode *next;
-} EntryTableNode;
-
-/**
- * @brief A struct containing a node in the extern table.
- * 
- * @param name The name of the external label.
- * @param next A pointer to the next node in the table.
- */
-typedef struct ExternTableNode
-{
-    char name[MAX_LABEL_LENGTH + 1]; /*+1 for '\0'*/
-    struct ExternTableNode *next;
-} ExternTableNode;
+    unsigned int is_extern : 1; /*one bit flag*/
+    unsigned int is_entry : 1; /*one bit flag*/
+    struct SymbolTableNode *next;
+} SymbolTableNode;
 
 /**
  * @brief A struct containing a node in the operand table.
@@ -152,9 +125,7 @@ typedef struct
 typedef struct
 {
     MacroTableNode *macro_table_head;
-    LabelTableNode *label_table_head;
-    EntryTableNode *entry_table_head;
-    ExternTableNode *extern_table_head;
+    SymbolTableNode *symbol_table_head;
     OperandTableNode *operand_label_table_head;
 } Tables;
 
@@ -168,8 +139,8 @@ typedef struct
  */
 typedef struct
 {
-    FILE *file;
-    char *file_name;
+    FILE *input_file;
+    const char *base_filename;
     int line_count;
     unsigned int error_status : 1;
 } FileInfo;

@@ -25,9 +25,11 @@ int is_comment(char line[]);
  * @brief This function checks if a line contains a label.
  * 
  * @param line The line to check.
- * @return 1 if the line is contains a label, 0 otherwise.
+ * @param file_info A pointer to the FileInfo struct containing information about the file.
+ * @param tables A pointer to the Tables struct containing the tables.
+ * @return 1 if the line contains a label, 0 otherwise.
  */
-int is_label(char line[]);
+int search_for_label(char line[], FileInfo *file_info, Tables *tables);
 
 /**
  * @brief Checks if a line is a data command.

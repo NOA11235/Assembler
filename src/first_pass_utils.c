@@ -31,13 +31,20 @@ int is_comment(char line[])
     return 0;
 }
 
-int is_label(char line[])
+int search_for_label(char line[], FileInfo *file_info, Tables *tables)
 {
     char label[MAX_LABEL_LENGTH];
     sscanf(line, "%s", label);
     if(label[strlen(label)-1] == ':')
     {
-        return 1;
+        label[strlen(label)-1] = '\0';
+        if(is_valid_label(label, file_info, tables))
+        {
+            return 1;
+        }
+
+        printf(ERROR_MESSAGE, "error: invalid label name");
+        file_info->error_status = 1;
     }
     return 0;
 }
@@ -70,12 +77,12 @@ int is_instruction(char line[])
 
 char *process_label(char line[], FileInfo *file_info, Tables *tables, int counter)
 {
-    char label[MAX_LABEL_LENGTH], data_name[MAX_DATA_NAME_LENGTH];
-    int is_data_label = 0;
-    sscanf(line, "%s", label);
-    label[strlen(label) - 1] = '\0'; /*removing the ':' from the label*/
-    line = line + strlen(label) + 1; /*+1 for ':'*/
+    char label_name[MAX_LABEL_LENGTH], data_name[MAX_DATA_NAME_LENGTH];
+    sscanf(line, "%s", label_name);
+    label_name[strlen(label_name) - 1] = '\0'; /*removing the ':' from the label*/
+    line = line + strlen(label_name) + 1; /*+1 for ':'*/
     sscanf(line, "%s", data_name);
+
     if(strcmp(data_name, data_table[2].name) == 0 || strcmp(data_name, data_table[3].name) == 0)
     {
         printf(ERROR_MESSAGE, "warning: label cannot be on a line with an entry or extern instruction");
@@ -83,10 +90,12 @@ char *process_label(char line[], FileInfo *file_info, Tables *tables, int counte
     }
     if(strcmp(data_name, data_table[0].name) == 0 || strcmp(data_name, data_table[1].name) == 0)
     {
-        is_data_label = 1;
+        add_label_to_table(label_name, counter, "data", file_info, tables);
     }
-
-    add_label_to_table(tables, label, counter, is_data_label);
+    else /*this is an instruction label*/
+    {
+        add_label_to_table(label_name, counter, "instruction", file_info, tables);
+    }
     return line;
 }
 
@@ -127,7 +136,7 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
     int word_count = 0; /*keeps track of the number of information words in the instruction_array*/
     int comma_flag = 0; /*flag for indecating the comma is expected in the beginning of next data*/
 
-    token = strtok(line, " \t");/*this token consists of the operation name*/
+    token = strtok(line, " \t\n");/*this token consists of the operation name*/
 
     /*getting the operation code*/
     for(opcode = 0; opcode < NUM_OF_OP; opcode++)
@@ -150,8 +159,7 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
 
     for(i = 0; i < operation_table[opcode].num_of_operands; i++)
     {
-        token = strtok(NULL, " \t"); /*this token consists of the operand*/
-        token = comma_parser(token, &comma_flag, file_info);
+        token = strtok(NULL, " \t\n"); /*this token consists of the operand*/
 
         /*checking if there are to few operands*/
         if(token == NULL)
@@ -160,9 +168,11 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
             file_info->error_status = 1;
             return;
         }
+
+        token = comma_parser(token, &comma_flag, file_info);
         
         /*finding the addressing method of the operand*/
-        if(token[0] == '#')
+        if(token[0] == '#' && is_valid_integer(token + 1))
         {
             process_immediate(token, opcode, i+1, ++word_count, file_info, machine_code_image);
         }
@@ -188,15 +198,13 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
         }
         else
         {
-            process_direct(token, opcode, i+1, word_count, file_info, machine_code_image);
-            /*adding the operand label to the operand table*/
-            add_operand_to_table(tables, token, machine_code_image->IC + (++word_count), file_info->line_count);
+            process_direct(token, opcode, i+1, ++word_count, file_info, tables, machine_code_image);
         }
     }
     machine_code_image->IC += word_count + 1; /*+1 for the instruction word*/
 
     /*if the next token isn't empty*/
-    if((token = strtok(NULL, " \t")))
+    if((token = strtok(NULL, " \t\n")))
     {
         if(!comma_flag || (comma_flag && (token[0] == ','))) /*if there is a comma at the end of the last line or at the beginnig of this line*/
         {

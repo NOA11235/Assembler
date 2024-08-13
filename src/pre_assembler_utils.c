@@ -1,76 +1,78 @@
+#include "pre_assembler_utils.h"
+#include "pre_assembler_table_utils.h"
 #include "defs.h"
+#include "parser_utils.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
+FILE *create_am_file(const char *filename)
+{
+    FILE *am_file;
+    char *am_filename = (char *)malloc(strlen(filename) + 4); /*+4 for ".am and \0"*/
+    if(am_filename == NULL)
+    {
+        printf("Allocation error\n");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(am_filename, filename);
+    strcat(am_filename, ".am");
+    am_file = fopen(am_filename, "w+");
+    free(am_filename);
+    if(am_file == NULL)
+    {
+        printf("Error: %s file not found\n", am_filename);
+        exit(EXIT_FAILURE);
+    }
+    return am_file;
+}
+
 void process_macro_definition(char *line, FileInfo *file_info, Tables *tables)
 {
     char *token;
-    int i;
 
-    line = line + 5; /*getting rid of "macr ", +5 for "macr "*/
-    token = strtok(line, " \t"); /*this token consists of the macro name*/
-
-    /*cheching if macro name is a data name*/
-    for(i = 0; i < NUM_OF_DATA; i++)
-    {
-        if(strcmp(token, data_table[i].name) == 0)
-        {
-            printf(ERROR_MESSAGE, "error: macro name is identical to a data name");
-            file_info->error_status = 1;
-        }
-    }
+    token = strtok(line, " \t\n"); /*this token consists of "macr"*/
+    token = strtok(NULL, " \t\n"); /*this token consists of the macro name*/
 
     /*cheching if macro name is to long*/
     if(strlen(token) > MAX_MACRO_NAME_LENGTH)
     {
-        printf(ERROR_MESSAGE, "error: macro name is too long");
+        printf(MACRO_ERROR_MESSAGE, "error: macro name is too long");
         file_info->error_status = 1;
+        return;
     }
 
-    /*cheching if macro name is an operation name*/
-    for(i = 0; i < NUM_OF_OP; i++)
+    if(is_reserved_word(token))
     {
-        if(strcmp(token, operation_table[i].name) == 0)
-        {
-            printf(ERROR_MESSAGE, "error: macro name is identical to an operation name");
-            file_info->error_status = 1;
-        }
+        printf(MACRO_ERROR_MESSAGE, "error: macro name is a reserved word");
+        file_info->error_status = 1;
+        return;
     }
     
     /*cheching if macro name is already exists*/
     if(macro_name_already_exists(token, tables))
     {
-        printf(ERROR_MESSAGE, "error: macro name already exists");
+        printf(MACRO_ERROR_MESSAGE, "error: macro name already exists");
         file_info->error_status = 1;
-    }
-
-    if(!(token = strtok(NULL, " \t"))) /*if there is more text after the macro name*/
-    {
-        printf(ERROR_MESSAGE, "error: extranous text after macro name");
-        file_info->error_status = 1;
+        return;
     }
 
     /*if the macro name is valid, add it to the macro table*/
     add_macro_to_macro_table(token, tables);
-}
 
-void process_end_of_macro_definition(char *line, FileInfo *file_info, Tables *tables)
-{
-    char *token = strtok(line, " \t"); /*this token consists of "endmacr"*/
-    if(!(token = strtok(NULL, " \t")))
+    if((token = strtok(NULL, " \t\n"))) /*if there is more text after the macro name*/
     {
-        printf(ERROR_MESSAGE, "error: extranous text after end of macro definition");
+        printf(MACRO_ERROR_MESSAGE, "error: extranous text after macro name");
         file_info->error_status = 1;
     }
 }
 
-void add_content_to_macro(char *line, FileInfo *file_info, Tables *tables)
+void process_end_of_macro_definition(char *line, FileInfo *file_info, Tables *tables)
 {
-
-}
-
-int find_macro_and_print(char *line, FileInfo *file_info, Tables *tables)
-{
-
+    char *token = strtok(line, " \t\n"); /*this token consists of "endmacr"*/
+    if((token = strtok(NULL, " \t\n")))
+    {
+        printf(MACRO_ERROR_MESSAGE, "error: extranous text after end of macro definition");
+        file_info->error_status = 1;
+    }
 }

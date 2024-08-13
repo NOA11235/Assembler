@@ -10,53 +10,27 @@
 
 void process_data_data(char *line, FileInfo *file_info, MachineCodeImage *machine_code_image)
 {
-    char *token = strtok(line, " \t");
+    char *token = strtok(line, " \t\n");
     int comma_flag = 0; /*flag for indecating the comma is expected in the beginning of next data*/
-    int minus_flag = 0; /*flag for indecating that the number is negative*/
-    int i, num;
+    int num;
     do
     {
         token = comma_parser(token, &comma_flag, file_info);
 
-        /*checking for sign in the beginning*/
-        if(token[0] == '+' || token[0] == '-')
-        {
-            if(token[0] == '-')
-            {
-                minus_flag = 1;
-            }
-            token++;
-        }
-
         /*checking if the data is valid*/
-        for(i = 0; i < strlen(token); i++)
+        if(!is_valid_integer(token))
         {
-            if(!isdigit(token[i]))
-            {
-                printf(ERROR_MESSAGE, "error: data must be an integer");
-                file_info->error_status = 1;
-            }
-        }
-
-        /*converting the data to integer and adding it to the memory picture*/
-        num = atoi(token);
-
-        /*checking if the data is in the range of 15 bits*/
-        if(num < -pow(2, 14) || num >= pow(2, 14))
-        {
-            printf(ERROR_MESSAGE, "error: data is out of range");
+            printf(ERROR_MESSAGE, "error: invalid data");
             file_info->error_status = 1;
         }
-        
-        /*calculating the number if the data is negitive so it would be represented in the 2's complement method*/
-        if(minus_flag)
-        {
-            num = (~num) + 1; /*calculating the 2's complement*/
-            num = num & 0x7FFF; /*making sure the number is in the range of 15 bits*/
-        }
+
+        /*converting the data to two's complement integer and adding it to the memory picture*/
+        num = calculate_two_complement(token, 15, file_info);
+
         machine_code_image->data_array[machine_code_image->DC] = num;
         machine_code_image->DC++;
-    } while((token = strtok(NULL, " \t")) != NULL);
+
+    } while((token = strtok(NULL, " \t\n")) != NULL);
 
     /*checking if there is a comma at the end of the line*/
     if(!comma_flag)
@@ -82,7 +56,7 @@ void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *mach
     machine_code_image->DC++;
 
     /*checking for extraneous text after the end of command*/
-    while((token = strtok(NULL, " \t")))
+    while((token = strtok(NULL, " \t\n")))
     {
         for(i = 0; i < strlen(token); i++)
         {
@@ -98,11 +72,11 @@ void process_string_data(char *line, FileInfo *file_info, MachineCodeImage *mach
 
 void process_entry_data(char *line, FileInfo *file_info, Tables *tables)
 {
-    char *label = strtok(line, " \t"); /*this token consists of label name*/
-    add_entry_to_table(tables, label);
+    char *label_name = strtok(line, " \t\n"); /*this token consists of label name*/
+    add_label_to_table(label_name, 0, "entry", file_info, tables);
 
     /*checking for extraneous text after the end of command*/
-    if(strtok(NULL, " \t"))
+    if(strtok(NULL, " \t\n"))
     {
         printf(ERROR_MESSAGE, "error: extraneous text after the end of command");
         file_info->error_status = 1;
@@ -111,11 +85,11 @@ void process_entry_data(char *line, FileInfo *file_info, Tables *tables)
 
 void process_extern_data(char *line, FileInfo *file_info, Tables *tables)
 {
-    char *label = strtok(line, " \t"); /*this token consists of label name*/
-    add_extern_to_table(tables, label);
+    char *label_name = strtok(line, " \t\n"); /*this token consists of label name*/
+    add_label_to_table(label_name, 0, "extern", file_info, tables);
 
     /*checking for extraneous text after the end of command*/
-    if(strtok(NULL, " \t"))
+    if(strtok(NULL, " \t\n"))
     {
         printf(ERROR_MESSAGE, "error: extraneous text after the end of command");
         file_info->error_status = 1;

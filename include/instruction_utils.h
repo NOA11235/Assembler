@@ -50,7 +50,8 @@ void process_direct_register(char *token, int opcode, int operand_num, int word_
  * @param word_count The number of information word of the command (there might be a few information words).
  * @param file_info A pointer to the FileInfo struct containing information about the file.
  * @param machine_code_image A pointer to the MachineCodeImage struct containing the machine code image.
+ * @param tables A pointer to the Tables struct containing the tables.
  */
-void process_direct(char *token, int opcode, int operand_num, int word_count, FileInfo *file_info, MachineCodeImage *machine_code_image);
+void process_direct(char *token, int opcode, int operand_num, int word_count, FileInfo *file_info, Tables *tables, MachineCodeImage *machine_code_image);
 
 #endif

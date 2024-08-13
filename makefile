@@ -3,8 +3,9 @@ CC = gcc
 CFLAGS = -Wall -ansi -pedantic -g
 
 # Source files
-SRCS = src/assembler.c src/first_pass.c src/second_pass.c src/first_pass_utils.c \
-	   src/second_pass_utils.c src/first_pass_table_utils.c src/second_pass_table_utils.c \
+SRCS = src/assembler.c src/pre_assembler.c src/first_pass.c src/second_pass.c \
+	   src/pre_assembler_utils.c src/first_pass_utils.c src/second_pass_utils.c \
+	   src/pre_assembler_table_utils.c src/first_pass_table_utils.c src/second_pass_table_utils.c \
 	   src/data_utils.c src/instruction_utils.c src/parser_utils.c src/defs.c
 
 # Header files
@@ -25,8 +26,8 @@ build/%.o: src/%.c $(HDRS)
 
 # Rule to build the executable file
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 # Clean up object files and executable
 clean:
-	rm -f $(OBJS) $(TARGET) *.ent *.ob *.ext
+	rm -f $(OBJS) $(TARGET) *.ent *.ob *.ext *.am

@@ -1,5 +1,6 @@
 #include "first_pass.h"
 #include "first_pass_utils.h"
+#include "first_pass_table_utils.h"
 #include "parser_utils.h"
 #include "defs.h"
 #include <stdio.h>
@@ -22,7 +23,7 @@ void first_pass(MachineCodeImage *machine_code_image, Tables *tables, FileInfo *
         }
         if(is_data(line))
         {
-            if(is_label(line))
+            if(search_for_label(line, file_info, tables))
             {
                 line_ptr = process_label(line, file_info, tables, machine_code_image->DC);
             }
@@ -30,11 +31,14 @@ void first_pass(MachineCodeImage *machine_code_image, Tables *tables, FileInfo *
         }
         else if(is_instruction(line))
         {
-            if(is_label(line))
+            if(search_for_label(line, file_info, tables))
             {
                 line_ptr = process_label(line, file_info, tables, machine_code_image->IC);
             }
             process_instruction(line_ptr, file_info, tables, machine_code_image);
         }
     }
+
+    add_offset_to_data_labels(tables, machine_code_image->IC);
+    validate_entry_labels(file_info, tables);
 }

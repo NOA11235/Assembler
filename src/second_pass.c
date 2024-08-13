@@ -7,10 +7,8 @@
 
 void second_pass(MachineCodeImage *machine_code_image, Tables *tables, FileInfo *file_info)
 {
-    add_values_to_label_table(tables, machine_code_image->IC);
     process_label_operands(file_info, tables, machine_code_image);
-
-    /*the .ent .ext and .object will be printed only if there wasn't any error detect*/
+    /*the .ent .ext and .ob will be printed only if there wasn't any error detect*/
     if (file_info->error_status)
     {
         return;

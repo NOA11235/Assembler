@@ -8,13 +8,13 @@ void print_machine_code(FileInfo *file_info, MachineCodeImage *machine_code_imag
 {
     int i;
     FILE *object_file;
-    char *filename = malloc(strlen(file_info->file_name) + 4); /*+4 for ".ob" and '\0'*/
+    char *filename = malloc(strlen(file_info->base_filename) + 4); /*+4 for ".ob" and '\0'*/
     if(filename == NULL)
     {
         printf("Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    sprintf(filename, "%s.ob", file_info->file_name);
+    sprintf(filename, "%s.ob", file_info->base_filename);
     object_file = fopen(filename, "w");
     
     /*check if file was opened successfully*/

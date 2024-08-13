@@ -1,4 +1,4 @@
-/*include here the macro header*/
+#include "pre_assembler.h"
 #include "first_pass.h"
 #include "second_pass.h"
 #include "defs.h"
@@ -16,25 +16,30 @@ int main(int argc, char *argv[])
 
     for(i = 1; i < argc; i++)
     {
-        char *filename = (char *)malloc(strlen(argv[i]) + 4); /*+4 for the ".as" \ ".am" and '\0'*/
+        char *input_filename = (char *)malloc(strlen(argv[i]) + 4); /*+4 for the ".as" \ ".am" and '\0'*/
+        if(input_filename == NULL)
+        {
+            printf("Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
 
         /*resetting the structers for the next file*/
         memset(&machine_code_image, 0, sizeof(MachineCodeImage));
         memset(&tables, 0, sizeof(Tables));
         memset(&file_info, 0, sizeof(FileInfo));
 
-        strcpy(filename, argv[i]);
-        strcat(filename, ".as");
-        am_file = fopen(filename, "r");
-        if(am_file == NULL)
+        strcpy(input_filename, argv[i]);
+        strcat(input_filename, ".as");
+        as_file = fopen(input_filename, "r");
+        if(as_file == NULL)
         {
-            printf("Error: %s file not found\n", filename);
-            free(filename);
+            printf("Error: %s file not found\n", input_filename);
+            free(input_filename);
             continue;
         }
 
-        file_info.file = as_file;
-        file_info.file_name = filename;
+        file_info.input_file = as_file;
+        file_info.base_filename = argv[i];
 
         am_file = interpret_macro(&file_info, &tables);
 
@@ -42,12 +47,27 @@ int main(int argc, char *argv[])
         {
             continue;
         }
-        memset(&file_info, 0, sizeof(FileInfo));
+
+        /*resetting the input file to the .am file*/
+        file_info.input_file = am_file;
+
+        /*reset the file pointer to the beginning of the .am file */
+        if(fseek(file_info.input_file, 0, SEEK_SET) != 0)
+        {
+            perror("Error resetting file pointer");
+            fclose(as_file);
+            fclose(am_file);
+            free(input_filename);
+            continue;
+        }
+        
+
         first_pass(&machine_code_image, &tables, &file_info);
         second_pass(&machine_code_image, &tables, &file_info);
 
         fclose(as_file);
         fclose(am_file);
+        free(input_filename);
     }
     return 0;
 }
