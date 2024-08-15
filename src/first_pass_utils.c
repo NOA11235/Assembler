@@ -250,10 +250,8 @@ void process_instruction(char *line, FileInfo *file_info, Tables *tables, Machin
     
     machine_code_image->IC += word_count + 1; /*+1 for the instruction word*/
 
-    /*if the next token isn't empty*/
     if(token)
     {
-
         printf(ERROR_MESSAGE, "error: extraneous text after the end of the command or too many operands");
         file_info->error_status = 1;
         return;
