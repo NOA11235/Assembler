@@ -7,61 +7,53 @@
 #include <ctype.h>
 #include <math.h>
 
-char *comma_parser(char *token, int *comma_flag, FileInfo *file_info)
+void validate_commas(char *line, FileInfo *file_info)
 {
-    char *tmp_ptr;
-    /*if there is a  comma at the beginning of the token*/
-    if(token[0] == ',')
+    /*checking if the line starts with a comma*/
+    line = walkthrough_white_spaces(line);
+    if(*line == ',')
     {
-        if(*comma_flag)
-        {
-            *comma_flag = 0;
-        }
-        else /*there is a comma at the beginning of the token and commas flag isn't set*/
-        {
-            printf(ERROR_MESSAGE, "consecutive commas");
-            file_info->error_status = 1;
-        }
-        if(strcmp(token, ",") == 0) /*if the token is only a comma*/
-        {
-            token = strtok(NULL, " \t\n");
-        }
-        else
-        {
-            token++;
-        }
-    }
-
-    if(*comma_flag) /*if there isn't a comma in the beginnig of the token and comma flag is set*/
-    {
-        printf(ERROR_MESSAGE, "error: missing comma");
+        printf(ERROR_MESSAGE, "error: unnecessary comma after the operation");
         file_info->error_status = 1;
+        line++;
     }
 
-    *comma_flag = 1;
-
-    /*getting rid of the comma at the end*/
-    if(token[strlen(token)-1] == ',')
+    while(*line != '\n' && *line != '\0') /*while the line isn't over*/
     {
-        *comma_flag = 0;
-        if(token[strlen(token)-2] == ',') /*if there consecutive commas the end of the token*/
+        /*checking if the line starts with a comma*/
+        line = walkthrough_white_spaces(line);
+        if(*line == ',')
         {
-            token[strlen(token)-2] = '\0';
             printf(ERROR_MESSAGE, "error: consecutive commas");
             file_info->error_status = 1;
+            line++;
+            line = walkthrough_white_spaces(line);
         }
-
-        token[strlen(token)-1] = '\0';
+        /*walking through the text*/
+        while(*line != ' ' && *line != '\t' && *line != '\n' && *line != '\0' && *line != ',')
+        {
+            line++;
+        }
+        /*checking if the line ends with a comma*/
+        line = walkthrough_white_spaces(line);
+        /*if we haven't reached the end of the line yet*/
+        if(*line != ',' && *line != '\n' && *line != '\0')
+        {
+            /*extraneous text after the end of the command will also print an error about missing commas*/
+            printf(ERROR_MESSAGE, "error: missing comma between operands");
+            file_info->error_status = 1;
+        }
+        else if(*line == ',')
+        {
+            line++;
+            line = walkthrough_white_spaces(line);
+            if(*line == '\n' || *line == '\0')
+            {
+                printf(ERROR_MESSAGE, "error: unnecessary comma at the end of the command");
+                file_info->error_status = 1;
+            }
+        }
     }
-    /*if there is a comma in the middle of the token*/
-    else if((tmp_ptr = strchr(token, ',')))
-    {
-        *comma_flag = 0;
-        *tmp_ptr = ' ';
-        token = strtok(token, " \t\n"); /*getting the first part of the token*/
-    }
-
-    return token;
 }
 
 char *walkthrough_white_spaces(char *line)
@@ -94,7 +86,7 @@ int read_line(char *line, FileInfo *file_info)
 
 int is_register(char *token)
 {
-    if(token[0] == 'r' && token[1] >= '0' && token[1] <= '7' && token[2] == '\0')
+    if(token[0] == 'r' && token[1] >= '0' && token[1] <= ('0' + MAX_REGISTER_NUMBER) && token[2] == '\0')
     {
         return 1;
     }
@@ -112,7 +104,7 @@ int is_reserved_word(char *name)
         }
     }
 
-    for(i = 0; i < NUM_OF_OP; i++)
+    for(i = 0; i < NUM_OF_OPERATIONS; i++)
     {
         if(strcmp(name, operation_table[i].name) == 0)
         {
@@ -134,53 +126,10 @@ int is_valid_integer(char *token)
 
     for(i = 0; i < strlen(token); i++)
     {
-        if(token[i] < '0' || token[i] > '9')
+        if(!isdigit(token[i]))
         {
             return 0;
         }
-    }
-        return 1;
-        return 1;
-    return 1;
-}
-
-int is_valid_label(char *token, FileInfo *file_info, Tables *tables)
-{
-    int i;
-
-    if(!isalpha(token[0]))
-    {
-        printf(ERROR_MESSAGE, "error: label must start with a letter");
-        file_info->error_status = 1;
-        return 0;
-    }
-
-    for(i = 1; i < strlen(token); i++)
-    {
-        if(!isalnum(token[i]))
-        {
-            printf(ERROR_MESSAGE, "error: label must contain only letters and digits");
-            file_info->error_status = 1;
-            return 0;
-        }
-    }
-
-    if(strlen(token) > MAX_LABEL_LENGTH)
-    {
-        printf(ERROR_MESSAGE, "error: label is too long");
-        return 0;
-    }
-
-    if(is_reserved_word(token))
-    {
-        printf(ERROR_MESSAGE, "error: label is identical to a reserved word");
-        return 0;
-    }
-
-    if(is_macro_name(token, tables))
-    {   
-        printf(ERROR_MESSAGE, "error: label is identical to a macro name");
-        return 0;
     }
 
     return 1;
@@ -214,5 +163,6 @@ int calculate_two_complement(char *token, int num_of_bits, FileInfo *file_info)
         num = (~num) + 1; /*calculating the two's complement*/
         num = num & ((1 << num_of_bits) - 1); /*making sure the number is num_of_bits bits long*/
     }
+
     return num;
 }

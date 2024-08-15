@@ -31,14 +31,14 @@ void add_operand_to_table(char *name, int position_in_instruction_array, int pos
  * @brief Checks if a label name is a macro name.
  * 
  * @param name The name of the macro.
- * @param tables A pointer to the tables.
+ * @param tables A pointer to the Tables struct containing the tables
  */
 int is_macro_name(char *name, Tables *tables);
 
 /**
  * @brief Adds the instruction segment length to the data labels.
  * 
- * @param tables A pointer to the tables.
+ * @param tables A pointer to the Tables struct containing the tables
  * @param data_offset The offset of the data segment.
  */
 void add_offset_to_data_labels(Tables *tables, int data_offset);
@@ -46,7 +46,7 @@ void add_offset_to_data_labels(Tables *tables, int data_offset);
 /**
  * @brief Checks if a labels defined as entry are defined in the file.
  * 
- * @param tables A pointer to the tables.
+ * @param tables A pointer to the Tables struct containing the tables
  * @param file_info A pointer to the FileInfo struct containing information about the file.
  */
 void validate_entry_labels(FileInfo *file_info, Tables *tables);

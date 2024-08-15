@@ -10,7 +10,7 @@
 #define MAX_LINE_LENGTH 80
 #define MAX_LABEL_LENGTH 31
 #define MAX_MACRO_NAME_LENGTH 31
-#define NUM_OF_OP 16
+#define NUM_OF_OPERATIONS 16
 #define NUM_OF_DATA 4
 #define NUM_OF_ADDRESSING_METHODS 4
 #define ALLOC_SIZE 50
@@ -19,6 +19,22 @@
 #define FIRST_ADDRESS 100
 #define MACRO_ERROR_MESSAGE "%s.as:%d: %s\n", file_info->base_filename, file_info->line_count
 #define ERROR_MESSAGE "%s.am:%d: %s\n", file_info->base_filename, file_info->line_count
+#define SET_A_FIELD 1 << 2
+#define SET_R_FIELD 1 << 1
+#define SET_E_FIELD 1
+#define SOURCE_ADDRESSING_OFFSET 7
+#define TARGET_ADDRESSING_OFFSET 3
+#define SOURCE_REGISTER_OFFSET 6
+#define TARGET_REGISTER_OFFSET 3
+#define OPCODE_OFFSET 11
+#define IMMEDIATE_OFFSET 3
+#define LABEL_OFFSET 3
+#define IMMEDIATE_ADDRESSING_CODE 0
+#define DIRECT_ADDRESSING_CODE 1
+#define INDRECT_REGISTER_ADDRESSING_CODE 2
+#define DIRECT_REGISTER_ADDRESSING_CODE 3
+
+#define MAX_REGISTER_NUMBER 7
 
 /*Dynamic Tables*/
 

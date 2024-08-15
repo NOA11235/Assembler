@@ -13,7 +13,7 @@ FILE *interpret_macro(FileInfo *file_info, Tables *tables)
     char first_word[MAX_MACRO_NAME_LENGTH + 2]; /*+2 for an extra character and '\0'*/
     int macro_definition_flag = 0;
     FILE *am_file = NULL;
-    char *am_filename = (char *)malloc(strlen(file_info->base_filename) + 4); /*+4 for ".am and \0"*/
+    char *am_filename;
 
     /*an am_file will be created, but if an error will be detected in the macro interpretation then the file will be deleted*/
     am_file = create_am_file(file_info->base_filename);
@@ -47,13 +47,25 @@ FILE *interpret_macro(FileInfo *file_info, Tables *tables)
         }
     }
 
+    /*if there was an error in the macro interpretation, delete the .am file and free the macro table*/
     if(file_info->error_status)
     {
+        free_macro_table(tables);
         fclose(am_file);
+
+        /*getting .am filename*/
+        am_filename = (char *)malloc(strlen(file_info->base_filename) + 4); /*+4 for ".am and \0"*/
+        if(am_filename == NULL)
+        {
+            printf("Allocation error\n");
+            exit(EXIT_FAILURE);
+        }
+        sprintf(am_filename, "%s.am", file_info->base_filename);
+
         remove(am_filename);
         free(am_filename);
         return NULL;
     }
-    free(am_filename);
+
     return am_file;
 }

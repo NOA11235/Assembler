@@ -11,6 +11,7 @@ void second_pass(MachineCodeImage *machine_code_image, Tables *tables, FileInfo 
     /*the .ent .ext and .ob will be printed only if there wasn't any error detect*/
     if (file_info->error_status)
     {
+        free_tables(tables);
         return;
     }
     print_entry_labels(file_info, tables);

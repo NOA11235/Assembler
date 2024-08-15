@@ -15,15 +15,17 @@ FILE *create_am_file(const char *filename)
         printf("Allocation error\n");
         exit(EXIT_FAILURE);
     }
-    strcpy(am_filename, filename);
-    strcat(am_filename, ".am");
+    /*getting the filename*/
+    sprintf(am_filename, "%s.am", filename);
+
     am_file = fopen(am_filename, "w+");
-    free(am_filename);
+    free(am_filename); /*free the filename string now because we might exit because an error accured*/
     if(am_file == NULL)
     {
         printf("Error: %s file not found\n", am_filename);
         exit(EXIT_FAILURE);
     }
+
     return am_file;
 }
 
@@ -70,9 +72,24 @@ void process_macro_definition(char *line, FileInfo *file_info, Tables *tables)
 void process_end_of_macro_definition(char *line, FileInfo *file_info, Tables *tables)
 {
     char *token = strtok(line, " \t\n"); /*this token consists of "endmacr"*/
-    if((token = strtok(NULL, " \t\n")))
+
+    if((token = strtok(NULL, " \t\n"))) /*if there is more text after "endmacr"*/
     {
         printf(MACRO_ERROR_MESSAGE, "error: extranous text after end of macro definition");
         file_info->error_status = 1;
+    }
+}
+
+void free_macro_table(Tables *tables)
+{
+    MacroTableNode *current = tables->macro_table_head;
+    MacroTableNode *next;
+    
+    while(current != NULL)
+    {
+        next = current->next;
+        free(current->content);
+        free(current);
+        current = next;
     }
 }

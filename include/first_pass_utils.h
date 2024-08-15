@@ -32,6 +32,15 @@ int is_comment(char line[]);
 int search_for_label(char line[], FileInfo *file_info, Tables *tables);
 
 /**
+ * @brief Validates the label.
+ * 
+ * @param label The label to validate.
+ * @param file_info A pointer to the FileInfo struct containing information about the file.
+ * @param tables A pointer to the Tables struct containing the tables.
+ */
+void validate_label(char label[], FileInfo *file_info, Tables *tables);
+
+/**
  * @brief Checks if a line is a data command.
  * 
  * @param line The line to check.

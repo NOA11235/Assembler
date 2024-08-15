@@ -7,11 +7,13 @@ void add_label_to_table(char *name, int address, char *type, FileInfo *file_info
 {
     SymbolTableNode *new_node;
     SymbolTableNode *current = tables->symbol_table_head;
+
+    /*transversing the symbol table to check if the label is already defined*/
     while(current != NULL)
     {
         if (strcmp(current->name, name) == 0)
         {
-            /*instruction or data label can't be already defined or an external label*/
+            /*instruction or data label can't be already defined in the file as a label or external label*/
             if(strcmp(type, "instruction") == 0 || strcmp(type, "data") == 0)
             {
                 /*if the label was already defined in the file*/
@@ -30,7 +32,7 @@ void add_label_to_table(char *name, int address, char *type, FileInfo *file_info
                 }
 
                 current->address = address + FIRST_ADDRESS; /*setting the address of the label*/
-
+                /*setting the type of the label*/
                 if(strcmp(type, "instruction") == 0)
                 {
                     current->is_instruction = 1;
@@ -75,13 +77,13 @@ void add_label_to_table(char *name, int address, char *type, FileInfo *file_info
 
     /*if the label isn't in the symbol table*/
     new_node = (SymbolTableNode *)malloc(sizeof(SymbolTableNode));
-    memset(new_node, 0, sizeof(SymbolTableNode)); /*initialize the new node*/
     if (new_node == NULL)
     {
-        fprintf(stderr, "Memory allocation failed\n");
+        printf("Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
 
+    memset(new_node, 0, sizeof(SymbolTableNode)); /*initialize the new node*/
     strcpy(new_node->name, name);
     new_node->position_in_file = file_info->line_count;
     /*adding the new node to the head of the symbol table*/
@@ -114,9 +116,10 @@ void add_operand_to_table(char *name, int position_in_instruction_array, int pos
     OperandTableNode *new_node = (OperandTableNode *)malloc(sizeof(OperandTableNode));
     if (new_node == NULL)
     {
-        fprintf(stderr, "Memory allocation failed\n");
+        printf("Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
+    /*initialize the new node*/
     strcpy(new_node->name, name);
     new_node->position_in_instruction_array = position_in_instruction_array;
     new_node->position_in_file = position_in_file;
@@ -127,6 +130,7 @@ void add_operand_to_table(char *name, int position_in_instruction_array, int pos
 int is_macro_name(char *name, Tables *tables)
 {
     MacroTableNode *current = tables->macro_table_head;
+    /*transversing the macro table to check if the name is aleady defined as a macro name*/
     while(current != NULL)
     {
         if(strcmp(current->name, name) == 0)
@@ -141,6 +145,7 @@ int is_macro_name(char *name, Tables *tables)
 void add_offset_to_data_labels(Tables *tables, int data_offset)
 {
     SymbolTableNode *current = tables->symbol_table_head;
+    /*adding the offset to the address of the data labels*/
     while(current != NULL)
     {
         if(current->is_data)
@@ -154,6 +159,7 @@ void add_offset_to_data_labels(Tables *tables, int data_offset)
 void validate_entry_labels(FileInfo *file_info, Tables *tables)
 {
     SymbolTableNode *current = tables->symbol_table_head;
+    /*checking if all the entry labels were defined in the file*/
     while(current != NULL)
     {
         if(current->is_entry)

@@ -7,6 +7,7 @@
 int macro_name_already_exists(char *name, Tables *tables)
 {
     MacroTableNode *current = tables->macro_table_head;
+
     while (current != NULL)
     {
         if (strcmp(current->name, name) == 0)
@@ -26,6 +27,7 @@ void add_macro_to_macro_table(char *name, Tables *tables)
         printf("Allocation error\n");
         exit(EXIT_FAILURE);
     }
+    /*initialize the new node*/
     memset(new_node, 0, sizeof(MacroTableNode));
     strcpy(new_node->name, name);
     new_node->next = tables->macro_table_head;
@@ -36,16 +38,16 @@ void add_content_to_macro(char *line, FileInfo *file_info, Tables *tables)
 {
     char *new_content;
 
-    /*if the content of the macro is empty*/
+    /*if the content of the macro is empty we'll use malloc()*/
     if(tables->macro_table_head->content == NULL)
     {
         new_content = (char *)malloc(strlen(line) + 1); /*+1 for '\0'*/
-        memset(new_content, 0, strlen(line) + 1);
         if(new_content == NULL)
         {
             printf("Allocation error\n");
             exit(EXIT_FAILURE);
         }
+        memset(new_content, 0, strlen(line) + 1);
     }
     else /*if the content of the macro is not empty*/
     {
@@ -63,7 +65,7 @@ void add_content_to_macro(char *line, FileInfo *file_info, Tables *tables)
 int find_macro_and_print(char *line, FILE *am_file, FileInfo *file_info, Tables *tables)
 {
     MacroTableNode *current = tables->macro_table_head;
-    char *token = strtok(line, " \t\n"); /*this token consists of the might-be macro name without whit spaces*/
+    char *token = strtok(line, " \t\n"); /*this token consists of the might-be macro name without white spaces*/
 
     while(current != NULL)
     {

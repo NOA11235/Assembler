@@ -28,8 +28,9 @@ int main(int argc, char *argv[])
         memset(&tables, 0, sizeof(Tables));
         memset(&file_info, 0, sizeof(FileInfo));
 
-        strcpy(input_filename, argv[i]);
-        strcat(input_filename, ".as");
+        /*getting the name of the .as file*/
+        sprintf(input_filename, "%s.as", argv[i]);
+
         as_file = fopen(input_filename, "r");
         if(as_file == NULL)
         {
@@ -38,13 +39,15 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        file_info.input_file = as_file;
+        /*setting the input file to the .as file*/
         file_info.base_filename = argv[i];
+        file_info.input_file = as_file;
 
         am_file = interpret_macro(&file_info, &tables);
-
         if(am_file == NULL) /*if there was an error detected in the pre_assembler function*/
         {
+            fclose(as_file);
+            free(input_filename);
             continue;
         }
 
@@ -54,11 +57,11 @@ int main(int argc, char *argv[])
         /*reset the file pointer to the beginning of the .am file */
         if(fseek(file_info.input_file, 0, SEEK_SET) != 0)
         {
-            perror("Error resetting file pointer");
+            printf("Error: fseek failed\n");
             fclose(as_file);
             fclose(am_file);
             free(input_filename);
-            continue;
+            exit(EXIT_FAILURE);
         }
         
 
