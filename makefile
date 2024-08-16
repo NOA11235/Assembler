@@ -20,8 +20,12 @@ TARGET = assembler
 # Default target
 all: $(TARGET)
 
-# Compile source files into object files
-build/%.o: src/%.c $(HDRS)
+# Rule to create the build directory
+build:
+	mkdir -p build
+
+# Compile source files into object files, ensuring the build directory exists
+build/%.o: src/%.c $(HDRS) | build
 	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
 
 # Rule to build the executable file
